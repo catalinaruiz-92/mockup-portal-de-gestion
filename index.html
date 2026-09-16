@@ -1,0 +1,3259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#392678">
+<title>Portal de Gestión del Personal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='43.25' fill='none' stroke='%23343436' stroke-width='9.5' stroke-linecap='round' stroke-dasharray='144.03 271.75' transform='rotate(12 50 50)'/%3E%3Ccircle cx='50' cy='50' r='32.75' fill='none' stroke='%237fae24' stroke-width='9.5' stroke-linecap='round' stroke-dasharray='109.06 205.77' transform='rotate(242 50 50)'/%3E%3Ccircle cx='50' cy='50' r='22.25' fill='none' stroke='%23392678' stroke-width='9.5' stroke-linecap='round' stroke-dasharray='74.09 139.8' transform='rotate(116 50 50)'/%3E%3Ccircle cx='50' cy='50' r='15' fill='%23343436'/%3E%3C/svg%3E">
+<!-- Inter se carga de forma NO bloqueante: si no hay internet o está bloqueado,
+     la página igual renderiza con la tipografía del sistema. -->
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  /* Isotipo: violeta #392678, verde #7fae24, grafito #343436.
+     Violeta = marca y acciones. Verde = estados positivos. Grafito = texto. */
+  --background:#fbfbfc; --foreground:#2b2b2d;
+  --card:#ffffff; --card-fg:#2b2b2d;
+  --primary:#392678; --primary-hover:#2f1f62; --primary-fg:#ffffff;
+  --secondary:#f3f2f7; --secondary-fg:#35323f;
+  --muted:#f4f4f6; --muted-fg:#6a6773;
+  --accent:#ebe9f2; --accent-fg:#2f1f62;
+  --ok:#7fae24; --ok-text:#5b7d1a;
+  --destructive:#d6332f;
+  --border:#e5e3ed; --input:#e5e3ed; --ring:#392678;
+  --warn:#ba673f;
+  --sidebar:#ffffff; --sidebar-fg:#3b3946; --sidebar-border:#e7e5ee;
+  --radius:0.625rem;
+  --r-md:0.5rem; --r-lg:0.625rem; --r-xl:0.875rem; --r-full:999px;
+  --shadow-sm:0 1px 2px 0 rgb(43 43 45 / .05);
+  --shadow-md:0 4px 12px -2px rgb(43 43 45 / .09);
+  --shadow-lg:0 12px 32px -8px rgb(43 43 45 / .2);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--background); color:var(--foreground);
+  font-family:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:rgb(57 38 120 / .12)}
+button,input,select,textarea{font:inherit;color:inherit}
+
+button{cursor:pointer;border:none;background:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,p,dl,dd,dt,ul,ol{margin:0;padding:0}
+ul,ol{list-style:none}
+svg{display:block;flex:none}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Layout ---------- */
+.app{display:flex;height:100%;overflow:hidden}
+.sidebar{
+  display:none;width:17rem;flex:none;flex-direction:column;
+  background:var(--sidebar);border-right:1px solid var(--sidebar-border);
+}
+.pane{display:flex;min-width:0;flex:1;flex-direction:column}
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.container{max-width:72rem;margin:0 auto;padding:2rem 1rem;display:flex;flex-direction:column;gap:2rem}
+.container.narrow{max-width:48rem}
+@media(min-width:768px){
+  .sidebar{display:flex}
+  .container{padding:2rem}
+}
+
+/* ---------- Brand + nav ---------- */
+.brand{display:flex;align-items:center;gap:.625rem;min-height:4rem;padding:.75rem 1.25rem;flex:none}
+.logo{height:2.25rem;width:2.25rem;flex:none}
+.brand-name{display:block;font-size:.9375rem;font-weight:600;color:var(--sidebar-fg);line-height:1.2;letter-spacing:-.01em}
+.brand-sub{font-size:.75rem;color:var(--muted-fg);line-height:1.3}
+.nav{display:flex;flex:1;flex-direction:column;gap:.25rem;padding:1rem .75rem;overflow-y:auto}
+.nav a{
+  display:flex;align-items:center;gap:.75rem;border-radius:var(--r-lg);
+  padding:.625rem .75rem;font-size:.875rem;font-weight:500;color:var(--sidebar-fg);
+  transition:background-color .15s,color .15s;
+}
+.nav a:hover{background:var(--secondary)}
+.nav a[aria-current="page"]{background:var(--accent);color:var(--accent-fg)}
+.nav a span.label{flex:1}
+.pill{
+  border-radius:var(--r-full);background:var(--secondary);padding:.125rem .5rem;
+  font-size:10px;font-weight:500;color:var(--muted-fg);white-space:nowrap;
+}
+.usercard{border-top:1px solid var(--sidebar-border);padding:.75rem}
+.usercard-inner{display:flex;align-items:center;gap:.75rem;padding:.5rem;border-radius:var(--r-lg)}
+.avatar{
+  display:flex;align-items:center;justify-content:center;border-radius:var(--r-full);
+  background:var(--accent);color:var(--accent-fg);font-weight:600;flex:none;
+  height:2.25rem;width:2.25rem;font-size:.8125rem;
+}
+.avatar.sm{height:2rem;width:2rem;font-size:.75rem}
+.u-name{font-size:.875rem;font-weight:500;color:var(--sidebar-fg)}
+.u-role{font-size:.75rem;color:var(--muted-fg)}
+.trunc{min-width:0;display:flex;flex-direction:column;flex:1}
+.trunc>*{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  display:flex;height:4rem;flex:none;align-items:center;gap:1rem;
+  background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;
+}
+@media(min-width:768px){.topbar{padding:0 2rem}}
+.icon-btn{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  height:2.5rem;width:2.5rem;border-radius:var(--r-lg);color:var(--muted-fg);
+  transition:background-color .15s,color .15s;
+}
+.icon-btn:hover{background:var(--secondary);color:var(--foreground)}
+.icon-btn .dot{
+  position:absolute;top:.5rem;right:.5rem;height:.5rem;width:.5rem;border-radius:var(--r-full);
+  background:var(--primary);box-shadow:0 0 0 2px var(--card);
+}
+.searchbox{position:relative;display:none;flex:1;max-width:28rem}
+.searchbox svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg);pointer-events:none}
+.mobile-brand{display:flex;align-items:center;gap:.5rem}
+.mobile-brand .logo{height:1.875rem;width:1.875rem}
+@media(min-width:768px){
+  .searchbox{display:block}
+  .mobile-brand,.only-mobile{display:none!important}
+}
+.spacer{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+.userbtn{display:flex;align-items:center;gap:.5rem;border-radius:var(--r-lg);padding:.375rem .5rem .375rem .375rem;transition:background-color .15s}
+.userbtn:hover{background:var(--secondary)}
+
+/* ---------- Drawer (mobile nav) ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgb(20 26 23 / .45);z-index:40;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.drawer{
+  position:fixed;inset:0 auto 0 0;z-index:50;width:17.5rem;display:flex;flex-direction:column;
+  background:var(--sidebar);box-shadow:var(--shadow-lg);
+  transform:translateX(-100%);transition:transform .24s cubic-bezier(.32,.72,0,1);
+}
+body.nav-open .overlay{opacity:1;pointer-events:auto}
+body.nav-open .drawer{transform:translateX(0)}
+.drawer-close{position:absolute;top:1.125rem;right:.75rem}
+
+/* ---------- Notificaciones ---------- */
+.notif-wrap{position:relative}
+.notif-panel{
+  position:absolute;top:calc(100% + .5rem);right:0;z-index:30;width:min(22rem,calc(100vw - 2rem));
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);
+  box-shadow:var(--shadow-lg);overflow:hidden;display:none;
+}
+.notif-panel[data-open="true"]{display:block}
+.notif-panel header{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1rem;border-bottom:1px solid var(--border)}
+.notif-panel ul{max-height:20rem;overflow-y:auto}
+.notif-panel li{display:flex;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.notif-panel li:last-child{border-bottom:none}
+.notif-panel footer{padding:.625rem 1rem;border-top:1px solid var(--border);background:var(--muted)}
+
+/* ---------- Tipografía ---------- */
+.h1{font-size:1.5rem;font-weight:600;letter-spacing:-.02em}
+.h2{font-size:1rem;font-weight:600}
+.sub{font-size:.875rem;color:var(--muted-fg)}
+.xs{font-size:.75rem;color:var(--muted-fg)}
+.cap{text-transform:capitalize}
+.strong{font-weight:500;color:var(--foreground)}
+
+/* ---------- Cards ---------- */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
+.card-pad{padding:1.25rem}
+.grid{display:grid;gap:2rem;grid-template-columns:1fr}
+@media(min-width:1024px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .col-2{grid-column:span 2}
+}
+.stack{display:flex;flex-direction:column;gap:2rem}
+.stack-sm{display:flex;flex-direction:column;gap:1rem}
+.section{display:flex;flex-direction:column;gap:1rem}
+.cards-2{display:grid;gap:1rem;grid-template-columns:1fr}
+@media(min-width:640px){.cards-2{grid-template-columns:repeat(2,1fr)}}
+.iconbox{
+  display:flex;align-items:center;justify-content:center;border-radius:var(--r-lg);
+  background:var(--accent);color:var(--accent-fg);height:2.25rem;width:2.25rem;flex:none;
+}
+.iconbox.lg{height:2.75rem;width:2.75rem}
+
+/* ---------- Saldos ---------- */
+.saldo{display:flex;flex-direction:column;gap:1rem;padding:1.25rem}
+.saldo-num{font-size:1.875rem;font-weight:600;letter-spacing:-.02em}
+.bar{height:.5rem;width:100%;overflow:hidden;border-radius:var(--r-full);background:var(--secondary)}
+.bar>div{height:100%;border-radius:var(--r-full);background:var(--ok);transition:width .3s}
+.link{display:inline-flex;align-items:center;gap:.375rem;align-self:flex-start;font-size:.875rem;font-weight:500;color:var(--primary)}
+.link:hover{opacity:.8}
+
+/* ---------- Acciones rápidas ---------- */
+.quick{
+  display:flex;align-items:center;gap:.75rem;border-radius:var(--r-xl);
+  padding:.875rem 1rem;font-size:.875rem;font-weight:500;box-shadow:var(--shadow-sm);
+  background:var(--card);border:1px solid var(--border);transition:background-color .15s;
+}
+.quick:hover{background:var(--secondary)}
+.quick .qi{display:flex;align-items:center;justify-content:center;height:2rem;width:2rem;border-radius:var(--r-md);background:var(--accent);color:var(--accent-fg);flex:none}
+.quick.primary{background:var(--primary);color:var(--primary-fg);border-color:var(--primary)}
+.quick.primary:hover{background:var(--primary-hover)}
+.quick.primary .qi{background:rgb(255 255 255 / .15);color:inherit}
+
+/* ---------- Novedades ---------- */
+.list-div>li{border-bottom:1px solid var(--border)}
+.list-div>li:last-child{border-bottom:none}
+.list-div .nov{display:flex;align-items:flex-start;gap:.75rem;padding:1rem 1.25rem;transition:background-color .15s}
+.list-div .nov:hover{background:rgb(244 244 246 / .8)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+.count{border-radius:var(--r-full);background:var(--secondary);color:var(--secondary-fg);padding:.125rem .625rem;font-size:.75rem;font-weight:500}
+.tone-success{background:rgb(127 174 36 / .16);color:var(--ok-text)}
+.tone-danger{background:rgb(214 51 47 / .1);color:var(--destructive)}
+.tone-warning{background:rgb(186 103 63 / .15);color:var(--warn)}
+.tone-info{background:var(--accent);color:var(--accent-fg)}
+.nov-row{display:flex;min-width:0;flex:1;flex-direction:column;gap:.125rem}
+.nov-top{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem}
+.nov-time{flex:none;font-size:.75rem;color:var(--muted-fg)}
+
+/* ---------- Badges de estado ---------- */
+.badge{display:inline-flex;align-items:center;border-radius:var(--r-full);padding:.125rem .625rem;font-size:.75rem;font-weight:500;white-space:nowrap}
+.b-aprobada{background:rgb(127 174 36 / .16);color:var(--ok-text);box-shadow:inset 0 0 0 1px rgb(127 174 36 / .45)}
+.b-pendiente{background:#fffbeb;color:#b45309;box-shadow:inset 0 0 0 1px rgb(217 119 6 / .2)}
+.b-rechazada{background:#fef2f2;color:#b91c1c;box-shadow:inset 0 0 0 1px rgb(220 38 38 / .2)}
+.b-validacion{background:#f0f9ff;color:#0369a1;box-shadow:inset 0 0 0 1px rgb(2 132 199 / .2)}
+.b-registrada{background:#f1f5f9;color:#334155;box-shadow:inset 0 0 0 1px rgb(100 116 139 / .2)}
+
+/* ---------- Botones ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  height:2.25rem;padding:0 1rem;border-radius:var(--r-md);
+  font-size:.875rem;font-weight:500;transition:background-color .15s,opacity .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--primary);color:var(--primary-fg);box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-outline{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.btn-outline:hover{background:var(--secondary)}
+.btn-ghost{color:var(--muted-fg)}
+.btn-ghost:hover{background:var(--secondary);color:var(--foreground)}
+.btn-sm{height:2rem;padding:0 .625rem;font-size:.8125rem}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.back{display:inline-flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:500;color:var(--muted-fg);align-self:flex-start}
+.back:hover{color:var(--foreground)}
+
+/* ---------- Inputs ---------- */
+.field{display:flex;flex-direction:column;gap:.375rem}
+label.lbl{font-size:.875rem;font-weight:500}
+.input,.select,.textarea{
+  width:100%;height:2.5rem;border-radius:var(--r-lg);border:1px solid var(--input);
+  background:var(--card);padding:0 .75rem;font-size:.875rem;outline:none;transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.searchbox .input{padding-left:2.25rem;background:var(--background)}
+.textarea{height:auto;padding:.5rem .75rem;resize:vertical;min-height:5rem;font-family:inherit}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgb(57 38 120 / .18)}
+.select{
+  padding-right:2rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23676e69' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .625rem center;
+}
+.check{display:flex;align-items:flex-start;gap:.75rem;cursor:pointer}
+.check input{margin-top:.1875rem;height:1rem;width:1rem;accent-color:var(--primary);flex:none}
+
+/* ---------- Tabla / lista de solicitudes ---------- */
+.tbl-wrap{overflow:hidden;border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);box-shadow:var(--shadow-sm)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+thead tr{background:rgb(244 244 246 / .6);border-bottom:1px solid var(--border)}
+th{padding:.75rem 1rem;text-align:left;font-size:.6875rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg)}
+td{padding:.75rem 1rem;vertical-align:middle}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgb(244 244 246 / .5)}
+.t-right{text-align:right}
+.num{font-weight:500}
+.filters{display:flex;flex-direction:column;gap:.75rem}
+@media(min-width:768px){
+  .filters{flex-direction:row;align-items:center}
+  .filters .grow{flex:1}
+  .filters .select{width:auto}
+}
+@media(max-width:767px){
+  table,thead,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tbody tr{padding:1rem;border-bottom:1px solid var(--border)}
+  td{padding:0;display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:1.75rem}
+  td::before{content:attr(data-l);font-size:.75rem;color:var(--muted-fg);flex:none}
+  td+td{margin-top:.5rem}
+  td.t-right{justify-content:flex-end;margin-top:.75rem}
+  td.t-right::before{display:none}
+}
+.empty{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:3.5rem 1rem;text-align:center}
+.empty .circle{display:flex;align-items:center;justify-content:center;height:2.75rem;width:2.75rem;border-radius:var(--r-full);background:var(--muted);color:var(--muted-fg)}
+
+/* ---------- Nuevo trámite ---------- */
+.opt{
+  display:flex;flex-direction:column;padding:1.25rem;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);
+  transition:border-color .15s,box-shadow .15s,transform .15s;
+}
+.opt:hover{border-color:rgb(57 38 120 / .35);box-shadow:var(--shadow-md)}
+.opt-top{display:flex;align-items:center;justify-content:space-between}
+.opt h2{margin-top:1rem;font-size:1rem;font-weight:600}
+.opt p{margin-top:.25rem;font-size:.875rem;color:var(--muted-fg);line-height:1.55}
+.opt .chev{color:var(--muted-fg);transition:transform .15s,color .15s}
+.opt:hover .chev{transform:translateX(2px);color:var(--primary)}
+
+/* ---------- Wizard ---------- */
+.steps{display:flex;gap:.5rem;font-size:.75rem;font-weight:500}
+.steps li{flex:1}
+.steps span{display:block;border-radius:var(--r-full);padding:.375rem .75rem;text-align:center;background:var(--muted);color:var(--muted-fg)}
+.steps li[data-s="done"] span{background:var(--accent);color:var(--accent-fg)}
+.steps li[data-s="on"] span{background:var(--primary);color:var(--primary-fg)}
+.steps .short{display:none}
+@media(max-width:520px){
+  .steps{gap:.375rem}
+  .steps span{padding:.375rem .5rem;font-size:11px}
+  .steps .short{display:block}
+  .steps .full{display:none}
+}
+.rowbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem}
+.alert{border-radius:var(--r-lg);padding:.75rem 1rem;font-size:.875rem;background:var(--accent);color:var(--accent-fg)}
+.alert.bad{background:rgb(214 51 47 / .1);color:var(--destructive)}
+.dz{
+  display:flex;width:100%;flex-direction:column;align-items:center;gap:.5rem;text-align:center;
+  border:1px dashed var(--border);border-radius:var(--r-lg);background:rgb(244 244 246 / .5);
+  padding:2rem 1rem;transition:border-color .15s,background-color .15s;
+}
+.dz:hover{border-color:rgb(57 38 120 / .45);background:rgb(235 233 242 / .7)}
+.file{display:flex;align-items:center;justify-content:space-between;gap:1rem;border:1px solid var(--border);border-radius:var(--r-lg);background:rgb(244 244 246 / .5);padding:.75rem 1rem}
+.meta{display:grid;gap:.75rem;border-radius:var(--r-lg);background:rgb(244 244 246 / .5);padding:1rem}
+@media(min-width:640px){.meta,.dl2{grid-template-columns:repeat(2,1fr)}}
+.dl2{display:grid;gap:.75rem}
+.done{display:flex;flex-direction:column;align-items:center;gap:1.25rem;padding:3.5rem 1.5rem;text-align:center}
+.done .circle{display:flex;align-items:center;justify-content:center;height:4rem;width:4rem;border-radius:var(--r-full);background:rgb(127 174 36 / .16);color:var(--ok-text)}
+.recap{width:100%;max-width:22rem;border-radius:var(--r-lg);background:rgb(244 244 246 / .6);padding:1rem;text-align:left}
+.recap div{display:flex;align-items:center;justify-content:space-between;padding:.1875rem 0}
+.wizard-nav{display:flex;align-items:center;justify-content:space-between}
+.wizard-nav.end{justify-content:flex-end}
+
+/* ---------- Pantalla pendiente ---------- */
+.pending{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;
+  border:1px dashed var(--border);border-radius:var(--r-xl);background:var(--card);
+  padding:5rem 1.5rem;text-align:center;box-shadow:var(--shadow-sm);
+}
+.pending .circle{display:flex;align-items:center;justify-content:center;height:3.5rem;width:3.5rem;border-radius:var(--r-full);background:var(--accent);color:var(--accent-fg)}
+.pending p{max-width:28rem;font-size:.875rem;line-height:1.6;color:var(--muted-fg)}
+
+.row{display:flex;align-items:center;gap:.75rem}
+.between{display:flex;flex-direction:column;gap:1rem}
+@media(min-width:768px){.between{flex-direction:row;align-items:center;justify-content:space-between}}
+/* ---------- Documentos ---------- */
+.attn{display:flex;flex-direction:column;gap:.875rem;padding:1.25rem;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
+.attn h3{font-size:.9375rem;font-weight:600}
+.attn p{font-size:.875rem;color:var(--muted-fg);line-height:1.55}
+.attn .foot{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.doc{display:flex;align-items:flex-start;gap:.75rem;min-width:0}
+.doc .di{display:flex;align-items:center;justify-content:center;height:2.25rem;width:2.25rem;border-radius:var(--r-md);background:var(--secondary);color:var(--muted-fg);flex:none}
+.doc .di.pend{background:rgb(186 103 63 / .15);color:var(--warn)}
+.doc-name{font-weight:500;word-break:break-word}
+.origen{display:inline-flex;align-items:center;gap:.25rem;font-size:.75rem;color:var(--muted-fg);margin-top:.125rem}
+.nota{font-size:.75rem;color:var(--destructive);margin-top:.125rem}
+.acciones{display:inline-flex;gap:.25rem;justify-content:flex-end}
+
+/* ---------- Conmutador de perfiles ---------- */
+.rol-wrap{position:relative}
+.rol-btn{display:flex;align-items:center;gap:.5rem;border:1px solid var(--border);border-radius:var(--r-lg);padding:.3125rem .5rem .3125rem .375rem;background:var(--card);transition:background-color .15s}
+.rol-btn:hover{background:var(--secondary)}
+.rol-txt{display:none;flex-direction:column;line-height:1.2;text-align:left}
+.rol-txt .n{font-size:.8125rem;font-weight:500}
+.rol-txt .r{font-size:.6875rem;color:var(--primary);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+@media(min-width:640px){.rol-txt{display:flex}}
+.rol-panel{position:absolute;top:calc(100% + .5rem);right:0;z-index:30;width:min(17rem,calc(100vw - 2rem));background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);overflow:hidden;display:none}
+.rol-panel[data-open="true"]{display:block}
+.rol-panel .cab{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-size:.75rem;color:var(--muted-fg)}
+.rol-op{display:flex;width:100%;align-items:center;gap:.75rem;padding:.75rem 1rem;text-align:left;transition:background-color .15s}
+.rol-op:hover{background:var(--secondary)}
+.rol-op[aria-current="true"]{background:var(--accent)}
+.rol-op .cuerpo{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.rol-op .cuerpo .n{font-size:.875rem;font-weight:500}
+.rol-op .cuerpo .d{font-size:.75rem;color:var(--muted-fg)}
+.pill.hot{background:var(--primary);color:var(--primary-fg)}
+
+/* ---------- Indicadores ---------- */
+.kpis{display:grid;gap:1rem;grid-template-columns:1fr}
+@media(min-width:640px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.kpi{display:flex;flex-direction:column;gap:.5rem;padding:1.25rem;background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .15s}
+a.kpi:hover{border-color:rgb(57 38 120 / .35);box-shadow:var(--shadow-md)}
+.kpi .top{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.kpi .n{font-size:1.875rem;font-weight:600;letter-spacing:-.02em}
+.kpi .l{font-size:.875rem;font-weight:500}
+.kpi .d{font-size:.75rem;color:var(--muted-fg)}
+
+/* ---------- Celda de agente ---------- */
+.ag{display:flex;align-items:center;gap:.625rem;min-width:0}
+.ag .avatar{height:2rem;width:2rem;font-size:.6875rem}
+.ag .txt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.ag .txt .n{font-weight:500}
+.ag .txt .d{font-size:.75rem;color:var(--muted-fg)}
+.mini-bar{display:flex;align-items:center;gap:.5rem}
+.mini-bar .bar{width:5rem;height:.375rem}
+.num-in{width:5rem;text-align:center}
+
+/* ---------- Almanaque ---------- */
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.cal-cab{display:grid;grid-template-columns:repeat(7,1fr);gap:.375rem;margin-bottom:.375rem}
+.cal-cab span{text-align:center;font-size:.6875rem;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--muted-fg)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.375rem}
+.cal-dia{display:flex;flex-direction:column;gap:.25rem;align-items:stretch;min-height:5.25rem;padding:.375rem;text-align:left;border:1px solid var(--border);border-radius:var(--r-md);background:var(--card);transition:background-color .15s,border-color .15s}
+.cal-dia:hover{border-color:rgb(57 38 120 / .4);background:rgb(235 233 242 / .55)}
+.cal-dia.finde{background:rgb(244 244 246 / .7)}
+.cal-dia.fuera{opacity:.4}
+.cal-dia.hoy{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+.cal-dia.sel{background:var(--accent);border-color:var(--primary)}
+.cal-n{font-size:.75rem;font-weight:600}
+.cal-chips{display:flex;flex-direction:column;gap:.125rem;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:.25rem;padding:.0625rem .3125rem;border-radius:.25rem;font-size:10px;font-weight:500;max-width:100%;overflow:hidden}
+.chip .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .ini{font-weight:700;letter-spacing:.02em}
+.chip.licencia{background:rgb(127 174 36 / .18);color:var(--ok-text)}
+.chip.imprevisto{background:rgb(186 103 63 / .16);color:var(--warn)}
+.chip.salud{background:#f0f9ff;color:#0369a1}
+.chip.sinjust{background:#fef2f2;color:#b91c1c}
+.chip.mas{background:var(--secondary);color:var(--muted-fg)}
+.cal-ref{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.cal-ref .ref{display:inline-flex;align-items:center;gap:.375rem;font-size:.75rem;color:var(--muted-fg)}
+.cal-ref .pt{height:.625rem;width:.625rem;border-radius:.1875rem;flex:none}
+.cal-ref .pt.licencia{background:rgb(57 38 120 / .45)}
+.cal-ref .pt.imprevisto{background:rgb(186 103 63 / .6)}
+.cal-ref .pt.salud{background:#7dd3fc}
+.cal-ref .pt.sinjust{background:#fca5a5}
+@media(max-width:640px){
+  .cal-grid,.cal-cab{gap:.1875rem}
+  .cal-dia{min-height:3.5rem;padding:.1875rem}
+  .chip .txt{display:none}
+  .chip{padding:.0625rem .25rem;justify-content:center}
+}
+.conflicto{margin-top:.375rem;font-size:.75rem;color:var(--warn)}
+
+/* ---------- Legajo ---------- */
+.tabs{display:flex;gap:.25rem;overflow-x:auto;border-bottom:1px solid var(--border);margin-bottom:1.5rem;-webkit-overflow-scrolling:touch}
+.tab{padding:.625rem .875rem;font-size:.875rem;font-weight:500;color:var(--muted-fg);border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--foreground)}
+.tab[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--primary)}
+.ficha{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:640px){.ficha{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.ficha{grid-template-columns:repeat(3,1fr)}}
+.dato .k{font-size:.75rem;color:var(--muted-fg)}
+.dato .v{font-size:.875rem;font-weight:500;word-break:break-word}
+.cabecera{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+.cabecera .avatar{height:3.5rem;width:3.5rem;font-size:1.125rem}
+.modulo{display:flex;flex-direction:column;gap:.5rem;padding:1.25rem;border:1px dashed var(--border);border-radius:var(--r-xl);background:var(--card)}
+.modulo h3{font-size:.9375rem;font-weight:600}
+.modulo p{font-size:.875rem;color:var(--muted-fg);line-height:1.55}
+.aviso{display:flex;gap:.625rem;align-items:flex-start;padding:.875rem 1rem;border-radius:var(--r-lg);background:var(--muted);font-size:.8125rem;color:var(--muted-fg);line-height:1.55}
+
+/* ---------- Opciones seleccionables ---------- */
+.picks{display:flex;flex-direction:column;gap:.75rem}
+.pick{display:flex;align-items:flex-start;gap:.75rem;padding:.875rem 1rem;border:1px solid var(--border);border-radius:var(--r-lg);cursor:pointer;transition:border-color .15s,background-color .15s}
+.pick:hover{border-color:rgb(57 38 120 / .35);background:rgb(235 233 242 / .55)}
+.pick.on{border-color:var(--primary);background:rgb(235 233 242 / .7);box-shadow:inset 0 0 0 1px var(--primary)}
+.pick input{margin-top:.1875rem;height:1rem;width:1rem;accent-color:var(--primary);flex:none}
+.pick-body{display:flex;flex-direction:column;gap:.1875rem;min-width:0;flex:1}
+.pick-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+
+/* ---------- Modal ---------- */
+.modal-back{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:1rem;background:rgb(20 26 23 / .45)}
+.modal-back[data-open="true"]{display:flex}
+.modal{width:100%;max-width:30rem;max-height:calc(100vh - 2rem);overflow-y:auto;background:var(--card);border-radius:var(--r-xl);box-shadow:var(--shadow-lg)}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.25rem 1.25rem .75rem}
+.modal-body{display:flex;flex-direction:column;gap:1rem;padding:0 1.25rem 1.25rem}
+.modal-foot{display:flex;justify-content:flex-end;gap:.5rem;padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgb(244 244 246 / .5)}
+
+/* ---------- Día ampliado ---------- */
+.modal.ancho{max-width:46rem}
+.dia-cifras{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.625rem}
+.dia-cifras .chip{font-size:.6875rem;padding:.1875rem .5rem}
+.grupo{margin-top:1.25rem}
+.grupo:first-child{margin-top:0}
+.grupo h3{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.grupo ul>li{display:flex;align-items:center;gap:.75rem;padding:.625rem 0;border-bottom:1px solid var(--border)}
+.grupo ul>li:last-child{border-bottom:none}
+.grupo .der{margin-left:auto;text-align:right;flex:none}
+.aviso.ok{background:rgb(127 174 36 / .14);color:var(--ok-text)}
+.aviso.ok svg{color:var(--ok-text)}
+.dest{display:flex;align-items:center;gap:.625rem;padding:.5rem 0}
+.dest .der{margin-left:auto;font-size:.75rem;color:var(--muted-fg)}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,1rem);z-index:70;
+  max-width:calc(100vw - 2rem);padding:.75rem 1rem;border-radius:var(--r-lg);
+  background:var(--foreground);color:var(--background);font-size:.875rem;box-shadow:var(--shadow-lg);
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+}
+.toast[data-open="true"]{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@supports(padding:max(0px)){
+  .container{
+    padding-left:max(1rem,env(safe-area-inset-left));
+    padding-right:max(1rem,env(safe-area-inset-right));
+    padding-bottom:max(2rem,env(safe-area-inset-bottom));
+  }
+  @media(min-width:768px){
+    .container{padding-left:max(2rem,env(safe-area-inset-left));padding-right:max(2rem,env(safe-area-inset-right))}
+  }
+}
+</style>
+</head>
+<body>
+
+<svg class="sr" aria-hidden="true"><defs>
+<g id="i-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></g>
+<g id="i-cal"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></g>
+<g id="i-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></g>
+<g id="i-folderlock"><path d="M10 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v2"/><rect width="8" height="5" x="14" y="17" rx="1"/><path d="M20 17v-2a2 2 0 1 0-4 0v2"/></g>
+<g id="i-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></g>
+<g id="i-bell"><path d="M10.27 21a2 2 0 0 0 3.46 0"/><path d="M3.26 15.33A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.67C19.41 13.96 18 12.5 18 8A6 6 0 0 0 6 8c0 4.5-1.41 5.96-2.74 7.33"/></g>
+<g id="i-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></g>
+<g id="i-chevdown"><path d="m6 9 6 6 6-6"/></g>
+<g id="i-chevright"><path d="m9 18 6-6-6-6"/></g>
+<g id="i-arrowright"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g>
+<g id="i-arrowleft"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></g>
+<g id="i-plus"><path d="M5 12h14"/><path d="M12 5v14"/></g>
+<g id="i-palm"><path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/></g>
+<g id="i-zap"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></g>
+<g id="i-check"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></g>
+<g id="i-xcircle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></g>
+<g id="i-fileclock"><path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="8" cy="16" r="6"/><path d="M9.5 17.5 8 16.25V14"/></g>
+<g id="i-calx"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m14 14-4 4"/><path d="m10 14 4 4"/></g>
+<g id="i-filetext"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></g>
+<g id="i-clock"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></g>
+<g id="i-ambulance"><path d="M10 10H6"/><path d="M8 8v4"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.68-.95l-1.93-.64a1 1 0 0 1-.57-.5l-1.54-3.08A1 1 0 0 0 16.38 8H14"/><circle cx="8" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></g>
+<g id="i-filecheck"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></g>
+<g id="i-grid"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></g>
+<g id="i-cap"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></g>
+<g id="i-truck"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></g>
+<g id="i-eye"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></g>
+<g id="i-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></g>
+<g id="i-upload"><path d="M12 13v8"/><path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="m8 17 4-4 4 4"/></g>
+<g id="i-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></g>
+<g id="logo">
+  <circle cx="50" cy="50" r="43.25" fill="none" stroke="#343436" stroke-width="9.5" stroke-linecap="round" stroke-dasharray="144.03 271.75" transform="rotate(12 50 50)"/>
+  <circle cx="50" cy="50" r="32.75" fill="none" stroke="#7fae24" stroke-width="9.5" stroke-linecap="round" stroke-dasharray="109.06 205.77" transform="rotate(242 50 50)"/>
+  <circle cx="50" cy="50" r="22.25" fill="none" stroke="#392678" stroke-width="9.5" stroke-linecap="round" stroke-dasharray="74.09 139.8" transform="rotate(116 50 50)"/>
+  <circle cx="50" cy="50" r="15" fill="#343436"/>
+</g>
+<g id="i-external"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></g>
+<g id="i-menu"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></g>
+</defs></svg>
+
+<noscript>
+  <div style="padding:2rem;max-width:32rem;margin:0 auto">
+    <h1 style="font-size:1.25rem;font-weight:600">Portal de Gestión del Personal</h1>
+    <p style="margin-top:.5rem;color:#676e69">Este prototipo necesita JavaScript activado para mostrar las pantallas.</p>
+  </div>
+</noscript>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="pane">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="btn-menu" aria-label="Abrir menú">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-menu"/></svg>
+      </button>
+      <a href="#/" class="mobile-brand">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><use href="#logo"/></svg>
+        <span style="font-size:.9375rem;font-weight:600;line-height:1.15">Gestión<br>del Personal</span>
+      </a>
+      <div class="searchbox">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-search"/></svg>
+        <input class="input" type="search" placeholder="Buscar trámites, documentos…" aria-label="Buscar">
+      </div>
+      <div class="spacer">
+        <div class="notif-wrap">
+          <button class="icon-btn" id="btn-notif" aria-label="Notificaciones" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg>
+            <span class="dot"></span>
+          </button>
+          <div class="notif-panel" id="notif-panel"></div>
+        </div>
+        <div class="rol-wrap">
+          <button class="rol-btn" id="btn-rol" aria-expanded="false" aria-label="Cambiar de perfil">
+            <span class="avatar sm" id="rol-ini">MP</span>
+            <span class="rol-txt">
+              <span class="n" id="rol-nom">Martín Pereyra</span>
+              <span class="r" id="rol-lab">Agente</span>
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-fg)" stroke-width="2" stroke-linecap="round"><use href="#i-chevdown"/></svg>
+          </button>
+          <div class="rol-panel" id="rol-panel"></div>
+        </div>
+      </div>
+    </header>
+    <main class="main" id="view"></main>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <button class="icon-btn drawer-close" id="btn-close" aria-label="Cerrar menú">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-x"/></svg>
+  </button>
+</aside>
+
+<script>
+/* =========================================================
+   Portal de Gestión del Personal — mockup navegable
+   Datos y textos tomados del proyecto rh-360.
+   ========================================================= */
+
+const AGENTE = { nombre:'Martín', apellido:'Pereyra', iniciales:'MP', area:'Atención a la Ciudadanía' };
+
+/* ---------- Roles ----------
+   Un solo portal: la navegación y las pantallas cambian según el rol activo.
+   El conmutador del encabezado permite recorrer los tres en la presentación. */
+const ROLES = {
+  agente:   { label:'Agente',   persona:'Martín Pereyra',   iniciales:'MP',
+              detalle:'Atención a la Ciudadanía',      portal:'Perfil del Agente',   home:'#/' },
+  rrhh:     { label:'RRHH',     persona:'Silvina Roldán',   iniciales:'SR',
+              detalle:'Dirección de Recursos Humanos', portal:'Perfil de RRHH',     home:'#/rrhh' },
+  director: { label:'Director', persona:'Gabriel Ferreyra', iniciales:'GF',
+              detalle:'Atención a la Ciudadanía',      portal:'Perfil del Director', home:'#/director',
+              area:'Atención a la Ciudadanía' },
+};
+const ORDEN_ROLES = ['agente','rrhh','director'];
+
+/* Agentes del organismo. "YO" es el agente que usa el Portal del Agente. */
+const YO = 'ag-1';
+/* Los datos de legajo son de ejemplo: hay que definir con RRHH qué campos
+   se muestran, cuáles se editan desde acá y cuáles vienen de otro sistema. */
+const AGENTES = [
+  { id:'ag-1', nombre:'Martín Pereyra',   iniciales:'MP', legajo:'48210', area:'Atención a la Ciudadanía',
+    saldos:{ lao:{disp:14,total:21}, imp:{disp:3,total:5} },
+    cuil:'20-32456789-4', dni:'32.456.789', nacimiento:'1986-04-12', ingreso:'2014-03-03',
+    cargo:'Administrativo', categoria:'Categoría 4', agrupamiento:'Administrativo',
+    revista:'Planta permanente', regimen:'35 horas semanales',
+    correo:'mpereyra@santafe.gov.ar', telefono:'341 155-0142', domicilio:'Rosario, Santa Fe' },
+  { id:'ag-2', nombre:'Lucía Benítez',    iniciales:'LB', legajo:'47908', area:'Atención a la Ciudadanía',
+    saldos:{ lao:{disp:6,total:21},  imp:{disp:5,total:5} },
+    cuil:'27-30891234-1', dni:'30.891.234', nacimiento:'1984-09-27', ingreso:'2012-08-20',
+    cargo:'Administrativo', categoria:'Categoría 5', agrupamiento:'Administrativo',
+    revista:'Planta permanente', regimen:'35 horas semanales',
+    correo:'lbenitez@santafe.gov.ar', telefono:'341 155-8823', domicilio:'Rosario, Santa Fe' },
+  { id:'ag-3', nombre:'Rodrigo Sosa',     iniciales:'RS', legajo:'50122', area:'Mesa de Entradas',
+    saldos:{ lao:{disp:21,total:21}, imp:{disp:2,total:5} },
+    cuil:'20-35678901-7', dni:'35.678.901', nacimiento:'1991-01-08', ingreso:'2019-05-06',
+    cargo:'Administrativo', categoria:'Categoría 2', agrupamiento:'Administrativo',
+    revista:'Contrato de gestión', regimen:'40 horas semanales',
+    correo:'rsosa@santafe.gov.ar', telefono:'341 155-3390', domicilio:'Rosario, Santa Fe' },
+  { id:'ag-5', nombre:'Javier Kaufmann',  iniciales:'JK', legajo:'46330', area:'Mesa de Entradas',
+    saldos:{ lao:{disp:17,total:21}, imp:{disp:4,total:5} },
+    recibeParte:true,
+    cuil:'20-28994521-3', dni:'28.994.521', nacimiento:'1981-06-19', ingreso:'2009-11-02',
+    cargo:'Jefe de Mesa de Entradas', categoria:'Categoría 6', agrupamiento:'Administrativo',
+    revista:'Planta permanente', regimen:'35 horas semanales',
+    correo:'jkaufmann@santafe.gov.ar', telefono:'341 155-2205', domicilio:'Rosario, Santa Fe' },
+  { id:'ag-4', nombre:'Carla Domínguez',  iniciales:'CD', legajo:'49551', area:'Mesa de Entradas',
+    saldos:{ lao:{disp:9,total:21},  imp:{disp:0,total:5} },
+    recibeParte:true,
+    cuil:'27-33210987-5', dni:'33.210.987', nacimiento:'1988-11-30', ingreso:'2016-02-15',
+    cargo:'Administrativo', categoria:'Categoría 3', agrupamiento:'Administrativo',
+    revista:'Planta permanente', regimen:'35 horas semanales',
+    correo:'cdominguez@santafe.gov.ar', telefono:'341 155-6674', domicilio:'Rosario, Santa Fe' },
+];
+function agente(id){ return AGENTES.filter(a => a.id === id)[0]; }
+const AREAS = ['Atención a la Ciudadanía','Mesa de Entradas'];
+/* El Director solo ve su área; RRHH ve todo el organismo. */
+function areaDelDirector(){ return ROLES.director.area; }
+function equipoDirector(){ return AGENTES.filter(a => a.area === areaDelDirector()); }
+/* Quiénes reciben el parte diario. A definir con RRHH cómo se designan. */
+const AREA_PARTE = 'Mesa de Entradas';
+function destinatariosParte(){ return AGENTES.filter(a => a.recibeParte); }
+function esDeMiArea(agenteId){ const a = agente(agenteId); return !!a && a.area === areaDelDirector(); }
+function nombreAgente(id){ const a = agente(id); return a ? a.nombre : '—'; }
+
+const NAV_ROL = {
+  agente: [
+    { label:'Inicio',         href:'#/',            icon:'i-home' },
+    { label:'Solicitudes',    href:'#/solicitudes', icon:'i-cal' },
+    { label:'Documentos',     href:'#/documentos',  icon:'i-folder' },
+    { label:'Legajo Digital', href:'#/legajo',      icon:'i-folderlock', badge:'Próximamente' },
+    { label:'Mi Perfil',      href:'#/perfil',      icon:'i-user' },
+  ],
+  rrhh: [
+    { label:'Inicio',       href:'#/rrhh',              icon:'i-home' },
+    { label:'Validaciones', href:'#/rrhh/validaciones', icon:'i-filecheck', contador:() => aValidar().length },
+    { label:'Trámites',     href:'#/rrhh/tramites',     icon:'i-cal',       contador:() => aRegistrar().length },
+    { label:'Almanaque',    href:'#/rrhh/almanaque',    icon:'i-calx' },
+    { label:'Parte diario', href:'#/rrhh/parte',        icon:'i-filetext' },
+    { label:'Agentes',      href:'#/rrhh/agentes',      icon:'i-user' },
+    { label:'Legajos',      href:'#/rrhh/legajos',      icon:'i-folderlock' },
+    { label:'Novedades',    href:'#/rrhh/novedades',    icon:'i-bell' },
+  ],
+  director: [
+    { label:'Inicio',       href:'#/director',             icon:'i-home' },
+    { label:'Aprobaciones', href:'#/director/aprobaciones', icon:'i-filecheck', contador:() => aAprobar().length },
+    { label:'Almanaque',    href:'#/director/almanaque',    icon:'i-calx' },
+    { label:'Mi equipo',    href:'#/director/equipo',      icon:'i-user' },
+  ],
+};
+
+/* Los saldos viven en cada agente: si RRHH los ajusta, cambian acá. */
+const DEF_SALDOS = [
+  { key:'lao', label:'Licencia Anual Ordinaria', icon:'i-palm' },
+  { key:'imp', label:'Imprevistos',              icon:'i-zap' },
+];
+
+/* Portal Ciudadano de la Provincia de Santa Fe (SSO). El agente ingresa con su
+   usuario del portal provincial: el Portal no maneja esa autenticación. */
+const URL_RECIBOS = 'https://sso.santafe.gov.ar/service-auth/login?service=https%3A%2F%2Fwww.santafe.gob.ar%2Fportalciudadano%2F';
+
+const NOVEDADES = [
+  { icon:'i-filetext',  tone:'info',    title:'Recibos de sueldo disponibles',   href:URL_RECIBOS, externo:true,
+    detail:'Ya está publicado tu recibo de julio 2026. Se descarga desde el Portal Ciudadano, ingresando con tu usuario de la Provincia.', time:'Hace 1 h' },
+  { icon:'i-check',     tone:'success', title:'Solicitud aprobada',               href:'#/solicitudes',
+    detail:'Tu solicitud de Licencia Anual Ordinaria #TR-1042 fue aprobada por tu Director.', time:'Hace 2 h' },
+  { icon:'i-calx',      tone:'warning', title:'Ausencia pendiente de justificar', href:'#/documentos',
+    detail:'Registrás una ausencia del 21/07 sin certificado adjunto.', time:'Ayer' },
+  { icon:'i-fileclock', tone:'warning', title:'Documento pendiente',              href:'#/documentos',
+    detail:'Falta adjuntar la constancia de tu trámite de Estudio #TR-1039.', time:'Hace 2 días' },
+  { icon:'i-filetext',  tone:'info',    title:'Nuevo documento disponible',       href:'#/documentos',
+    detail:'Ya podés descargar el PDF de tu solicitud de Imprevisto #TR-1037.', time:'Hace 3 días' },
+  { icon:'i-xcircle',   tone:'danger',  title:'Solicitud rechazada',              href:'#/solicitudes',
+    detail:'Tu solicitud de Licencia Anual Ordinaria #TR-1031 fue rechazada por tu Director.', time:'Hace 5 días' },
+];
+
+const ACCIONES = [
+  { label:'Nuevo trámite',   href:'#/solicitudes/nuevo', icon:'i-plus',   primary:true },
+  { label:'Mis solicitudes', href:'#/solicitudes',       icon:'i-cal' },
+  { label:'Documentos',      href:'#/documentos',        icon:'i-folder' },
+  { label:'Recibos de sueldo', href:URL_RECIBOS,         icon:'i-external', externo:true },
+
+];
+
+const TIPOS = ['Licencia Anual Ordinaria','Imprevisto','Aviso de ausencia','Justificación de ausencia'];
+const ESTADOS = ['Pendiente','Aprobada','Rechazada','En validación','Registrada'];
+
+const SOLICITUDES = [
+  { numero:'TR-2057', agente:'ag-4', tipo:'Licencia Anual Ordinaria',  estado:'Registrada',    fecha:isoHace(9), dias:6, periodo:'en curso',
+    desde:isoHace(2), hasta:isoEn(3) },
+  { numero:'TR-2055', agente:'ag-2', tipo:'Imprevisto',                estado:'Registrada',    fecha:isoHace(3), dias:1, periodo:'hoy',
+    desde:hoyISO(), hasta:hoyISO() },
+  { numero:'TR-2051', agente:'ag-2', tipo:'Licencia Anual Ordinaria',  estado:'Pendiente',     fecha:'2026-07-23', dias:5,  periodo:'10/08 al 14/08', desde:'2026-08-10', hasta:'2026-08-14' },
+  { numero:'TR-2050', agente:'ag-3', tipo:'Imprevisto',                estado:'Pendiente',     fecha:'2026-07-22', dias:1,  periodo:'28/07', desde:'2026-07-28', hasta:'2026-07-28' },
+  { numero:'TR-2048', agente:'ag-1', tipo:'Licencia Anual Ordinaria',  estado:'Aprobada',      fecha:'2026-07-18', dias:7,  periodo:'04/08 al 10/08', desde:'2026-08-04', hasta:'2026-08-10' },
+  { numero:'TR-2046', agente:'ag-4', tipo:'Licencia Anual Ordinaria',  estado:'Aprobada',      fecha:'2026-07-17', dias:10, periodo:'01/09 al 10/09', desde:'2026-09-01', hasta:'2026-09-10' },
+  { numero:'TR-2044', agente:'ag-2', tipo:'Justificación de ausencia', estado:'En validación', fecha:'2026-07-16' },
+  { numero:'TR-2041', agente:'ag-1', tipo:'Imprevisto',                estado:'Pendiente',     fecha:'2026-07-15', dias:1,  periodo:'30/07', desde:'2026-07-30', hasta:'2026-07-30' },
+  { numero:'TR-2038', agente:'ag-3', tipo:'Justificación de ausencia', estado:'En validación', fecha:'2026-07-14' },
+  { numero:'TR-2033', agente:'ag-1', tipo:'Justificación de ausencia', estado:'En validación', fecha:'2026-07-11' },
+  { numero:'TR-2027', agente:'ag-1', tipo:'Aviso de ausencia',         estado:'Registrada',    fecha:'2026-07-09' },
+  { numero:'TR-2019', agente:'ag-1', tipo:'Licencia Anual Ordinaria',  estado:'Rechazada',     fecha:'2026-06-28', dias:3, periodo:'06/07 al 08/07',
+    motivo:'Coincide con el período de licencia de otros dos agentes del área.' },
+  { numero:'TR-2012', agente:'ag-1', tipo:'Imprevisto',                estado:'Aprobada',      fecha:'2026-06-20', dias:1, periodo:'22/06' },
+  { numero:'TR-2004', agente:'ag-1', tipo:'Licencia Anual Ordinaria',  estado:'Aprobada',      fecha:'2026-05-30', dias:5, periodo:'09/06 al 13/06' },
+];
+
+function misSolicitudes(){ return SOLICITUDES.filter(x => x.agente === YO); }
+function aAprobar(){
+  const todas = SOLICITUDES.filter(x => x.estado === 'Pendiente');
+  return store.rol === 'director' ? todas.filter(x => esDeMiArea(x.agente)) : todas;
+}
+function aRegistrar(){ return SOLICITUDES.filter(x => x.estado === 'Aprobada'); }
+
+/* Plazo reglamentario para presentar un certificado. Vencido el plazo el envío
+   sigue habilitado: lo evalúa RRHH. */
+const PLAZO_HS = 72;
+
+function isoLocal(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function isoHace(dias){ const d = new Date(); d.setDate(d.getDate() - dias); return isoLocal(d); }
+function isoEn(dias){ const d = new Date(); d.setDate(d.getDate() + dias); return isoLocal(d); }
+function hoyISO(){ return isoLocal(new Date()); }
+
+function plazo(fechaIso){
+  const vence = new Date(new Date(fechaIso+'T00:00:00').getTime() + PLAZO_HS*3600000);
+  const restanHs = Math.ceil((vence - new Date()) / 3600000);
+  return {
+    vence: vence,
+    restanHs: restanHs,
+    vencido: restanHs <= 0,
+    /* Formato manual: DD/MM, sin depender del locale del dispositivo. */
+    texto: String(vence.getDate()).padStart(2,'0') + '/' + String(vence.getMonth()+1).padStart(2,'0'),
+  };
+}
+
+/* Ausencias ya informadas que todavía no tienen certificado.
+   La primera es reciente (dentro del plazo) y la segunda quedó fuera de plazo. */
+const AUSENCIAS = [
+  { id:'A-4', agente:'ag-3', fecha:hoyISO(),      tramite:'TR-2056', motivo:'Salud' },
+  { id:'A-3', agente:'ag-2', fecha:isoHace(4),    tramite:'TR-2052', motivo:'Salud' },
+  { id:'A-2', agente:'ag-1', fecha:isoHace(1),    tramite:'TR-2051', motivo:'Salud' },
+  { id:'A-1', agente:'ag-1', fecha:'2026-07-21',  tramite:'TR-2027', motivo:'Salud' },
+];
+function misAusencias(){ return AUSENCIAS.filter(a => a.agente === YO); }
+
+/* Documentos. "sistema" = lo genera el Portal; "agente" = lo adjuntás vos. */
+const TIPOS_DOC = ['Comprobante de trámite','Certificado médico','Constancia de estudio','Constancia de mudanza'];
+const ESTADOS_DOC = ['Validado','En validación','Rechazado','Pendiente de adjuntar'];
+
+const DOCUMENTOS = [
+  { id:'D-121', agente:'ag-2', nombre:'Certificado médico — ausencia 15/07.pdf', tipoDoc:'Certificado médico',
+    tramite:'TR-2044', tipoTramite:'Justificación de ausencia', fecha:'2026-07-16',
+    estado:'En validación', origen:'agente' },
+  { id:'D-120', agente:'ag-3', nombre:'Constancia de estudio — final Análisis II.pdf', tipoDoc:'Constancia de estudio',
+    tramite:'TR-2038', tipoTramite:'Estudio', fecha:'2026-07-14',
+    estado:'En validación', origen:'agente', fueraPlazo:true },
+  { id:'D-118', agente:'ag-1', nombre:'Certificado médico — ausencia 21/07', tipoDoc:'Certificado médico',
+    tramite:'TR-2027', tipoTramite:'Aviso de ausencia', fecha:null,
+    estado:'Pendiente de adjuntar', origen:'agente', ausencia:'A-1',
+    pedido:'Informaste una ausencia el 21/07 y todavía no presentaste el certificado.',
+    accion:{ label:'Justificar ausencia', href:'#/solicitudes/nuevo/justificar-ausencia' } },
+  { id:'D-117', agente:'ag-1', nombre:'Constancia de estudio', tipoDoc:'Constancia de estudio',
+    tramite:'TR-1039', tipoTramite:'Estudio', fecha:null,
+    estado:'Pendiente de adjuntar', origen:'agente',
+    pedido:'Tu Director aprobó los días de estudio. Falta la constancia para que RRHH la valide y registre.',
+    accion:{ label:'Ir al trámite', href:'#/solicitudes/TR-1039' } },
+  { id:'D-116', agente:'ag-1', nombre:'Comprobante de trámite TR-2048.pdf', tipoDoc:'Comprobante de trámite',
+    tramite:'TR-2048', tipoTramite:'Licencia Anual Ordinaria', fecha:'2026-07-18',
+    estado:'Validado', origen:'sistema' },
+  { id:'D-115', agente:'ag-1', nombre:'Comprobante de trámite TR-2041.pdf', tipoDoc:'Comprobante de trámite',
+    tramite:'TR-2041', tipoTramite:'Imprevisto', fecha:'2026-07-15',
+    estado:'Validado', origen:'sistema' },
+  { id:'D-114', agente:'ag-1', nombre:'Certificado médico — ausencia 11/07.pdf', tipoDoc:'Certificado médico',
+    tramite:'TR-2033', tipoTramite:'Justificación de ausencia', fecha:'2026-07-11',
+    estado:'En validación', origen:'agente' },
+  { id:'D-113', agente:'ag-1', nombre:'Comprobante de trámite TR-2027.pdf', tipoDoc:'Comprobante de trámite',
+    tramite:'TR-2027', tipoTramite:'Aviso de ausencia', fecha:'2026-07-09',
+    estado:'Validado', origen:'sistema' },
+  { id:'D-112', agente:'ag-1', nombre:'Comprobante de trámite TR-2012.pdf', tipoDoc:'Comprobante de trámite',
+    tramite:'TR-2012', tipoTramite:'Imprevisto', fecha:'2026-06-20',
+    estado:'Validado', origen:'sistema' },
+  { id:'D-111', agente:'ag-1', nombre:'Certificado médico — ausencia 18/06.pdf', tipoDoc:'Certificado médico',
+    tramite:'TR-2012', tipoTramite:'Imprevisto', fecha:'2026-06-19',
+    estado:'Rechazado', origen:'agente',
+    nota:'RRHH rechazó el archivo: la imagen está ilegible. Volvé a adjuntarlo.' },
+];
+
+const OPCIONES_TRAMITE = [  { href:'#/solicitudes/nuevo/vacaciones', icon:'i-palm', titulo:'Licencia Anual Ordinaria',
+    desc:'Solicitá tus días de licencia anual. Requiere aprobación del Director y firma electrónica.' },
+  { href:'#/solicitudes/nuevo/imprevisto', icon:'i-zap', titulo:'Imprevisto',
+    desc:'Solicitá una ausencia por un imprevisto. Requiere aprobación del Director y firma electrónica.' },
+  { href:'#/solicitudes/nuevo/avisar-ausencia', icon:'i-ambulance', titulo:'Avisar una ausencia',
+    desc:'Informá una ausencia por motivos de salud. Luego podrás adjuntar el certificado médico.' },
+  { href:'#/solicitudes/nuevo/justificar-ausencia', icon:'i-filecheck', titulo:'Justificar una ausencia',
+    desc:'Adjuntá la documentación para justificar una ausencia ya informada.' },
+  { href:'#/solicitudes/nuevo/otros', icon:'i-grid', titulo:'Otros',
+    desc:'Días de estudio, mudanza y otros trámites planificados. Requieren aprobación previa del Director.' },
+];
+
+const OPCIONES_OTROS = [
+  { href:'#/solicitudes/nuevo/otros/estudio', icon:'i-cap', titulo:'Estudio',
+    desc:'Solicitá tus días de estudio con anticipación. El Director aprueba y luego adjuntás la constancia para que RRHH la valide y registre.' },
+  { href:'#/solicitudes/nuevo/otros/mudanza', icon:'i-truck', titulo:'Mudanza',
+    desc:'Solicitá tus días por mudanza con anticipación. El Director aprueba y luego adjuntás la constancia para que RRHH la valide y registre.' },
+];
+
+/* ---------- helpers ---------- */
+const svg = (id, size=18, extra='') =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}><use href="#${id}"/></svg>`;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const fechaCorta = iso => new Date(iso+'T00:00:00')
+  .toLocaleDateString('es-AR',{ day:'2-digit', month:'short', year:'numeric' });
+
+const fechaLarga = iso => !iso ? '—' : new Date(iso+'T00:00:00')
+  .toLocaleDateString('es-AR',{ day:'2-digit', month:'long', year:'numeric' });
+
+const badgeDoc = e => ({
+  'Validado':'b-aprobada','En validación':'b-validacion',
+  'Rechazado':'b-rechazada','Pendiente de adjuntar':'b-pendiente'
+}[e]);
+
+const badgeClass = e => ({
+  'Aprobada':'b-aprobada','Pendiente':'b-pendiente','Rechazada':'b-rechazada',
+  'En validación':'b-validacion','Registrada':'b-registrada'
+}[e]);
+
+function contarDias(desde, hasta){
+  if(!desde || !hasta) return 0;
+  const d = new Date(desde+'T00:00:00'), h = new Date(hasta+'T00:00:00');
+  if (h < d) return 0;
+  return Math.floor((h-d)/86400000) + 1;
+}
+
+/* ---------- estado de UI ---------- */
+const store = {
+  rol: 'agente',
+  filtros: { q:'', estado:'Todos', tipo:'Todos' },
+  docs: { q:'', estado:'Todos', tipo:'Todos' },
+  rrhh: { q:'', estado:'Todos' },
+  cal:   { anio:new Date().getFullYear(), mes:new Date().getMonth(), dia:null, area:'Todas' },
+  parte: { dia:null, area:'Todas' },
+  partes: {},
+  legajos: { q:'', tab:'datos' },
+
+  pub:  { titulo:'', detalle:'', tono:'info', dest:'Todos los agentes', link:'' },
+  modal: null,
+  just: { paso:'ausencia', ausencia:'', tipoDoc:'', archivo:null, comentario:'' },
+  subidos: [],
+  vac: { paso:'datos', desde:'', hasta:'', comentario:'', firma:null, decl:false },
+};
+function saldoLAO(){ return agente(YO).saldos.lao; }
+
+/* ---------- navegación ---------- */
+function navHTML(path){
+  return NAV_ROL[store.rol].map(it => {
+    const activo = it.href === '#/' ? path === '#/' : path.startsWith(it.href);
+    return `<a href="${it.href}" ${activo?'aria-current="page"':''}>
+      ${svg(it.icon)}<span class="label">${it.label}</span>
+      ${it.badge?`<span class="pill">${it.badge}</span>`:''}
+      ${it.contador && it.contador()>0 ? `<span class="pill hot">${it.contador()}</span>`:''}
+    </a>`;
+  }).join('');
+}
+
+function sidebarHTML(path, drawer){
+  const r = ROLES[store.rol];
+  return `
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><use href="#logo"/></svg>
+    <span>
+      <span class="brand-name">Gestión del Personal</span>
+      <span class="brand-sub">${r.portal}</span>
+    </span>
+  </div>
+  <nav class="nav">${navHTML(path)}</nav>
+  <div class="usercard">
+    <div class="usercard-inner">
+      <span class="avatar">${r.iniciales}</span>
+      <span class="trunc">
+        <span class="u-name">${r.persona}</span>
+        <span class="u-role">${r.detalle}</span>
+      </span>
+    </div>
+  </div>`;
+}
+
+/* ---------- vistas ---------- */
+function vInicio(){
+  const now = new Date();
+  const h = now.getHours();
+  const saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+  const fecha = now.toLocaleDateString('es-AR',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const yo = agente(YO);
+  const saldos = DEF_SALDOS.map(def => {
+    const sd = yo.saldos[def.key];
+    const pct = sd.total ? Math.round(sd.disp / sd.total * 100) : 0;
+    return `<div class="card saldo">
+      <div class="row"><span class="iconbox">${svg(def.icon)}</span><h3 class="strong">${def.label}</h3></div>
+      <div style="display:flex;align-items:baseline;gap:.375rem">
+        <span class="saldo-num">${sd.disp}</span>
+        <span class="sub">/ ${sd.total} días disponibles</span>
+      </div>
+      <div class="bar" role="progressbar" aria-valuenow="${sd.disp}" aria-valuemin="0" aria-valuemax="${sd.total}" aria-label="${def.label}">
+        <div style="width:${pct}%"></div>
+      </div>
+      <a class="link" href="#/solicitudes">Ver detalle ${svg('i-arrowright',16)}</a>
+    </div>`;
+  }).join('');
+
+  const novedades = NOVEDADES.map(n => `
+    <li>
+      <a class="nov" href="${n.href}" ${n.externo?'target="_blank" rel="noopener" data-externo="1"':''}>
+        <span class="iconbox tone-${n.tone}">${svg(n.icon)}</span>
+        <div class="nov-row">
+          <div class="nov-top">
+            <p class="strong">${n.title} ${n.externo?svg('i-external',13,'style="display:inline-block;vertical-align:-2px;color:var(--muted-fg)"'):''}</p>
+            <span class="nov-time">${n.time}</span>
+          </div>
+          <p class="sub" style="line-height:1.6">${n.detail}</p>
+        </div>
+      </a>
+    </li>`).join('');
+
+  const acciones = ACCIONES.map(a =>
+    `<a class="quick ${a.primary?'primary':''}" href="${a.href}"
+        ${a.externo?'target="_blank" rel="noopener" data-externo="1"':''}>
+       <span class="qi">${svg(a.icon)}</span>
+       <span style="flex:1">${a.label}</span>
+       ${a.externo?svg('i-external',15,'style="color:var(--muted-fg)"'):''}
+     </a>`).join('');
+
+  return `<div class="container">
+    <div style="display:flex;flex-direction:column;gap:.25rem">
+      <h1 class="h1">${saludo}, ${AGENTE.nombre}</h1>
+      <p class="sub cap">${fecha}</p>
+    </div>
+    <div class="grid">
+      <div class="col-2">
+        <section class="card">
+          <div class="card-head">
+            <h2 class="h2">Novedades</h2>
+            <span class="count">${NOVEDADES.length}</span>
+          </div>
+          <ul class="list-div">${novedades}</ul>
+        </section>
+      </div>
+      <div class="stack">
+        <section class="section">
+          <h2 class="h2">Mis saldos</h2>
+          <div class="cards-2">${saldos}</div>
+        </section>
+        <section class="section">
+          <h2 class="h2">Acciones rápidas</h2>
+          <div class="stack-sm">${acciones}</div>
+        </section>
+      </div>
+    </div>
+  </div>`;
+}
+
+function tablaSolicitudes(){
+  const { q, estado, tipo } = store.filtros;
+  const t = q.trim().toLowerCase();
+  const rows = misSolicitudes().filter(s =>
+    (t === '' || s.numero.toLowerCase().includes(t) || s.tipo.toLowerCase().includes(t)) &&
+    (estado === 'Todos' || s.estado === estado) &&
+    (tipo === 'Todos' || s.tipo === tipo)
+  );
+
+  if (!rows.length) return `<div class="empty">
+      <span class="circle">${svg('i-filetext',20)}</span>
+      <p class="strong">Sin resultados</p>
+      <p class="sub">No se encontraron solicitudes con los filtros aplicados.</p>
+    </div>`;
+
+  return `<table>
+    <thead><tr>
+      <th>N.º de trámite</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th class="t-right">Acción</th>
+    </tr></thead>
+    <tbody>${rows.map(s => `<tr>
+      <td data-l="N.º de trámite" class="num">${s.numero}</td>
+      <td data-l="Tipo" class="sub">${s.tipo}</td>
+      <td data-l="Estado"><span class="badge ${badgeClass(s.estado)}">${s.estado}</span></td>
+      <td data-l="Fecha" class="sub">${fechaCorta(s.fecha)}</td>
+      <td class="t-right"><a class="btn btn-ghost btn-sm" href="#/solicitudes/${s.numero}">${svg('i-eye',16)} Ver</a></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function vSolicitudes(){
+  const { q, estado, tipo } = store.filtros;
+  return `<div class="container">
+    <div class="between">
+      <div>
+        <h1 class="h1">Mis solicitudes</h1>
+        <p class="sub" style="margin-top:.25rem">Seguimiento de todos tus trámites y su estado.</p>
+      </div>
+      <a class="btn btn-primary" href="#/solicitudes/nuevo">${svg('i-plus',16)} Nuevo trámite</a>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+      <div class="filters">
+        <div class="searchbox grow" style="display:block;max-width:none">
+          ${svg('i-search',16,'style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg)"')}
+          <input id="f-q" class="input" type="text" value="${esc(q)}" placeholder="Buscar por número o tipo" aria-label="Buscar solicitudes">
+        </div>
+        <select id="f-estado" class="select" aria-label="Filtrar por estado">
+          <option value="Todos">Estado: Todos</option>
+          ${ESTADOS.map(e => `<option ${e===estado?'selected':''}>${e}</option>`).join('')}
+        </select>
+        <select id="f-tipo" class="select" aria-label="Filtrar por tipo">
+          <option value="Todos">Tipo: Todos</option>
+          ${TIPOS.map(x => `<option ${x===tipo?'selected':''}>${x}</option>`).join('')}
+        </select>
+      </div>
+      <div class="tbl-wrap" id="tabla">${tablaSolicitudes()}</div>
+    </div>
+  </div>`;
+}
+
+function opcionesGrid(items){
+  return `<div class="cards-2">${items.map(o => `
+    <a class="opt" href="${o.href}">
+      <div class="opt-top">
+        <span class="iconbox lg">${svg(o.icon,20)}</span>
+        ${svg('i-chevright',20,'class="chev"')}
+      </div>
+      <h2>${o.titulo}</h2>
+      <p>${o.desc}</p>
+    </a>`).join('')}</div>`;
+}
+
+function vNuevoTramite(){
+  return `<div class="container narrow">
+    <a class="back" href="#/solicitudes">${svg('i-arrowleft',16)} Volver a Mis solicitudes</a>
+    <header>
+      <h1 class="h1">Nuevo trámite</h1>
+      <p class="sub" style="margin-top:.25rem">Elegí el tipo de trámite que querés iniciar.</p>
+    </header>
+    ${opcionesGrid(OPCIONES_TRAMITE)}
+  </div>`;
+}
+
+function vOtros(){
+  return `<div class="container narrow">
+    <a class="back" href="#/solicitudes/nuevo">${svg('i-arrowleft',16)} Volver a Nuevo trámite</a>
+    <header>
+      <h1 class="h1">Otros trámites</h1>
+      <p class="sub" style="margin-top:.25rem">Trámites planificados que se solicitan con anticipación y requieren aprobación previa del Director.</p>
+    </header>
+    ${opcionesGrid(OPCIONES_OTROS)}
+  </div>`;
+}
+
+/* ---------- Wizard: Licencia Anual Ordinaria ---------- */
+function pasoVacDatos(){
+  const v = store.vac;
+  const dias = contarDias(v.desde, v.hasta);
+  const excede = dias > saldoLAO().disp;
+  const ok = v.desde && v.hasta && dias > 0 && !excede;
+
+  return `<div class="stack">
+    <div class="card rowbar">
+      <div class="row">
+        ${svg('i-cal',20,'style="color:var(--primary)"')}
+        <div>
+          <p class="strong">Saldo de Licencia Anual Ordinaria</p>
+          <p class="xs">Días disponibles para este período</p>
+        </div>
+      </div>
+      <p style="font-weight:600;white-space:nowrap">${saldoLAO().disp} <span class="sub">/ ${saldoLAO().total} días</span></p>
+    </div>
+
+    <div class="card" style="padding:1.5rem">
+      <div class="dl2" style="gap:1.25rem">
+        <div class="field">
+          <label class="lbl" for="v-desde">Fecha desde</label>
+          <input class="input" id="v-desde" type="date" value="${v.desde}">
+        </div>
+        <div class="field">
+          <label class="lbl" for="v-hasta">Fecha hasta</label>
+          <input class="input" id="v-hasta" type="date" value="${v.hasta}" ${v.desde?`min="${v.desde}"`:''}>
+        </div>
+      </div>
+      <div class="field" style="margin-top:1rem">
+        <label class="lbl" for="v-com">Comentario <span style="font-weight:400;color:var(--muted-fg)">(opcional)</span></label>
+        <textarea class="textarea" id="v-com" rows="3" placeholder="Agregá una nota para tu Director si lo necesitás.">${esc(v.comentario)}</textarea>
+      </div>
+      <div id="v-aviso">${dias > 0 ? `<div class="alert ${excede?'bad':''}" style="margin-top:1rem">${
+        excede
+          ? `Estás solicitando ${dias} días y solo tenés ${saldoLAO().disp} disponibles.`
+          : `Estás solicitando ${dias} ${dias===1?'día':'días'} de licencia.`
+      }</div>` : ''}</div>
+    </div>
+
+    <div class="wizard-nav end">
+      <button class="btn btn-primary" id="v-cont" ${ok?'':'disabled'}>Continuar ${svg('i-arrowright',16)}</button>
+    </div>
+  </div>`;
+}
+
+function pasoVacFirma(){
+  const v = store.vac;
+  const dias = contarDias(v.desde, v.hasta);
+  const now = new Date();
+  const f = now.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hh = now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+
+  return `<div class="stack">
+    <div class="card" style="padding:1.5rem">
+      <h2 style="font-size:.875rem;font-weight:600">Resumen de la solicitud</h2>
+      <dl class="dl2" style="margin-top:1rem">
+        <div><dt class="xs">Tipo</dt><dd class="strong">Licencia Anual Ordinaria</dd></div>
+        <div><dt class="xs">Cantidad</dt><dd class="strong">${dias} ${dias===1?'día':'días'}</dd></div>
+        <div><dt class="xs">Desde</dt><dd class="strong">${fechaLarga(v.desde)}</dd></div>
+        <div><dt class="xs">Hasta</dt><dd class="strong">${fechaLarga(v.hasta)}</dd></div>
+      </dl>
+    </div>
+
+    <div class="card" style="padding:1.5rem">
+      <div class="row" style="gap:.5rem">
+        ${svg('i-shield',20,'style="color:var(--primary)"')}
+        <h2 style="font-size:.875rem;font-weight:600">Firma electrónica</h2>
+      </div>
+      <p class="sub" style="margin-top:.25rem">Adjuntá tu firma certificada para validar la solicitud. Se registrará tu identidad, fecha y hora.</p>
+
+      <div style="margin-top:1rem">
+        ${v.firma
+          ? `<div class="file">
+               <div class="row">
+                 <span class="iconbox" style="height:2.25rem;width:2.25rem">${svg('i-filetext',16)}</span>
+                 <div style="min-width:0">
+                   <p class="strong" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.firma)}</p>
+                   <p class="xs" style="color:var(--ok-text)">Firma certificada adjuntada</p>
+                 </div>
+               </div>
+               <button class="icon-btn" id="v-quitar" aria-label="Quitar firma" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+             </div>`
+          : `<button class="dz" id="v-dz">
+               ${svg('i-upload',24,'style="color:var(--muted-fg)"')}
+               <span class="strong">Adjuntar firma certificada</span>
+               <span class="xs">Archivo .p7s, .pdf firmado o imagen de firma (máx. 5 MB)</span>
+             </button>`}
+        <input type="file" id="v-file" accept=".p7s,.pdf,image/*" class="sr">
+      </div>
+
+      <div class="meta" style="margin-top:1rem">
+        <div><p class="xs">Firmante</p><p class="strong">${AGENTE.nombre} ${AGENTE.apellido}</p></div>
+        <div><p class="xs">Rol</p><p class="strong">Agente · ${AGENTE.area}</p></div>
+        <div><p class="xs">Fecha</p><p class="strong">${f}</p></div>
+        <div><p class="xs">Hora</p><p class="strong">${hh}</p></div>
+      </div>
+
+      <label class="check" style="margin-top:1rem">
+        <input type="checkbox" id="v-decl" ${v.decl?'checked':''}>
+        <span class="sub" style="line-height:1.6">Declaro que los datos consignados son correctos y firmo electrónicamente esta solicitud de Licencia Anual Ordinaria.</span>
+      </label>
+    </div>
+
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="v-volver">${svg('i-arrowleft',16)} Volver</button>
+      <button class="btn btn-primary" id="v-firmar" ${(v.firma && v.decl)?'':'disabled'}>Firmar y enviar ${svg('i-shield',16)}</button>
+    </div>
+  </div>`;
+}
+
+function pasoVacListo(){
+  const dias = contarDias(store.vac.desde, store.vac.hasta);
+  return `<div class="card done">
+    <span class="circle">${svg('i-check',32)}</span>
+    <div>
+      <h2 style="font-size:1.25rem;font-weight:600">Solicitud enviada</h2>
+      <p class="sub" style="margin-top:.5rem;max-width:28rem;line-height:1.6">
+        Tu solicitud de Licencia Anual Ordinaria fue firmada electrónicamente y enviada a tu Director para su aprobación.
+        Vas a recibir una novedad cuando haya una respuesta.
+      </p>
+    </div>
+    <div class="recap">
+      <div><span class="xs">N.º de trámite</span><span style="font-weight:600">TR-2052</span></div>
+      <div><span class="xs">Estado</span><span class="strong">Pendiente de aprobación</span></div>
+      <div><span class="xs">Días solicitados</span><span class="strong">${dias}</span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center">
+      <a class="btn btn-primary" href="#/solicitudes">Ir a Mis solicitudes</a>
+      <a class="btn btn-outline" href="#/">Volver al Inicio</a>
+    </div>
+  </div>`;
+}
+
+function vVacaciones(){
+  const paso = store.vac.paso;
+  const orden = ['datos','firma','listo'];
+  const i = orden.indexOf(paso);
+  const labels = [
+    ['1. Datos','1. Datos'],
+    ['2. Firma electrónica','2. Firma'],
+    ['3. Confirmación','3. Listo'],
+  ];
+  const steps = labels.map(([full, short], idx) => {
+    const s = idx === i ? 'on' : idx < i ? 'done' : 'off';
+    return `<li data-s="${s}"><span><span class="full">${full}</span><span class="short">${short}</span></span></li>`;
+  }).join('');
+
+  const cuerpo = paso === 'datos' ? pasoVacDatos() : paso === 'firma' ? pasoVacFirma() : pasoVacListo();
+
+  return `<div class="container narrow">
+    <a class="back" href="#/solicitudes/nuevo">${svg('i-arrowleft',16)} Volver a Nuevo trámite</a>
+    <header class="row">
+      <span class="iconbox lg">${svg('i-palm',20)}</span>
+      <div>
+        <h1 class="h1">Licencia Anual Ordinaria</h1>
+        <p class="sub">Requiere aprobación del Director y firma electrónica.</p>
+      </div>
+    </header>
+    <ol class="steps">${steps}</ol>
+    <div id="v-cuerpo">${cuerpo}</div>
+  </div>`;
+}
+
+function vPendiente(titulo, mensaje, icon='i-clock', volver){
+  return `<div class="container">
+    ${volver ? `<a class="back" href="${volver.href}">${svg('i-arrowleft',16)} ${volver.label}</a>` : ''}
+    <h1 class="h1">${titulo}</h1>
+    <div class="pending">
+      <span class="circle">${svg(icon,28)}</span>
+      <p>${mensaje}</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- Documentos ---------- */
+function docsTodos(){ return store.subidos.concat(DOCUMENTOS).filter(dd => !dd.oculto); }
+function todosLosDocs(){ return docsTodos().filter(dd => dd.agente === YO); }
+function aValidar(){ return docsTodos().filter(dd => dd.estado === 'En validación'); }
+
+function listaDocumentos(){
+  const f = store.docs;
+  const t = f.q.trim().toLowerCase();
+  const rows = todosLosDocs().filter(dd =>
+    (t === '' || dd.nombre.toLowerCase().includes(t) || dd.tramite.toLowerCase().includes(t) || dd.tipoTramite.toLowerCase().includes(t)) &&
+    (f.estado === 'Todos' || dd.estado === f.estado) &&
+    (f.tipo === 'Todos' || dd.tipoDoc === f.tipo)
+  );
+
+  if (!rows.length) return `<div class="empty">
+      <span class="circle">${svg('i-folder',20)}</span>
+      <p class="strong">Sin resultados</p>
+      <p class="sub">No se encontraron documentos con los filtros aplicados.</p>
+    </div>`;
+
+  return `<table>
+    <thead><tr>
+      <th>Documento</th><th>Trámite</th><th>Fecha</th><th>Estado</th><th class="t-right">Acciones</th>
+    </tr></thead>
+    <tbody>${rows.map(dd => {
+      const pend = dd.estado === 'Pendiente de adjuntar';
+      return `<tr>
+        <td data-l="Documento">
+          <div class="doc">
+            <span class="di ${pend?'pend':''}">${svg(pend?'i-fileclock':'i-filetext',16)}</span>
+            <div style="min-width:0">
+              <p class="doc-name">${dd.nombre}</p>
+              <span class="origen">${svg(dd.origen==='sistema'?'i-shield':'i-upload',12)} ${
+                dd.origen==='sistema' ? 'Generado por el Portal' : 'Adjuntado por vos'}</span>
+              ${dd.nota?`<p class="nota">${esc(dd.nota)}</p>`:''}
+            </div>
+          </div>
+        </td>
+        <td data-l="Trámite" class="sub">${dd.tramite} · ${dd.tipoTramite}</td>
+        <td data-l="Fecha" class="sub">${dd.fecha ? fechaCorta(dd.fecha) : '—'}</td>
+        <td data-l="Estado"><span class="badge ${badgeDoc(dd.estado)}">${dd.estado}</span></td>
+        <td class="t-right"><span class="acciones">${
+          pend
+            ? `<a class="btn btn-primary btn-sm" href="${dd.accion.href}" ${dd.ausencia?`data-ausencia="${dd.ausencia}"`:''}>${dd.accion.label} ${svg('i-chevright',16)}</a>`
+            : `<button class="btn btn-ghost btn-sm" data-ver="${dd.id}">${svg('i-eye',16)} Ver</button>
+               <button class="btn btn-ghost btn-sm" data-bajar="${dd.id}">${svg('i-arrowright',16,'style="transform:rotate(90deg)"')} Descargar</button>`
+        }</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function vDocumentos(){
+  const f = store.docs;
+  const pendientes = todosLosDocs().filter(dd => dd.estado === 'Pendiente de adjuntar');
+
+  const bloquePendientes = pendientes.length ? `
+    <section class="section">
+      <div class="row" style="gap:.5rem">
+        <h2 class="h2">Requieren tu acción</h2>
+        <span class="count">${pendientes.length}</span>
+      </div>
+      <div class="cards-2">${pendientes.map(dd => {
+        const au = dd.ausencia ? AUSENCIAS.filter(a => a.id === dd.ausencia)[0] : null;
+        const pl = au ? plazo(au.fecha) : null;
+        return `<div class="attn">
+          <div class="row">
+            <span class="iconbox tone-warning">${svg('i-fileclock')}</span>
+            <h3>${dd.tipoDoc}</h3>
+          </div>
+          <p>${dd.pedido}</p>
+          ${pl ? `<p class="${pl.vencido?'nota':'xs'}">${pl.vencido
+              ? `Fuera de plazo: vencía el ${pl.texto}. Podés presentarlo igual y RRHH lo evalúa.`
+              : `Plazo de ${PLAZO_HS} h: vence el ${pl.texto} (quedan ${pl.restanHs} h).`}</p>` : ''}
+          <div class="foot">
+            <span class="xs">${dd.tramite} · ${dd.tipoTramite}</span>
+            <a class="btn btn-primary btn-sm" href="${dd.accion.href}" ${dd.ausencia?`data-ausencia="${dd.ausencia}"`:''}>${dd.accion.label} ${svg('i-chevright',16)}</a>
+          </div>
+        </div>`;
+      }).join('')}</div>
+    </section>` : '';
+
+  const tramites = SOLICITUDES.map(x => `<option value="${x.numero}">${x.numero} · ${x.tipo}</option>`).join('');
+
+  return `<div class="container">
+    <div class="between">
+      <div>
+        <h1 class="h1">Documentos</h1>
+        <p class="sub" style="margin-top:.25rem">Consultá los comprobantes de tus trámites y el estado de la documentación que presentaste. Los archivos se adjuntan desde el trámite que corresponde.</p>
+      </div>
+      <a class="btn btn-outline" href="#/solicitudes/nuevo">${svg('i-plus',16)} Nuevo trámite</a>
+    </div>
+
+    ${bloquePendientes}
+
+    <section class="section">
+      <h2 class="h2">Todos mis documentos</h2>
+      <div class="filters">
+        <div class="searchbox grow" style="display:block;max-width:none">
+          ${svg('i-search',16,'style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg)"')}
+          <input id="d-q" class="input" type="text" value="${esc(f.q)}" placeholder="Buscar por documento o trámite" aria-label="Buscar documentos">
+        </div>
+        <select id="d-tipo" class="select" aria-label="Filtrar por tipo de documento">
+          <option value="Todos">Tipo: Todos</option>
+          ${TIPOS_DOC.map(x => `<option ${x===f.tipo?'selected':''}>${x}</option>`).join('')}
+        </select>
+        <select id="d-estado" class="select" aria-label="Filtrar por estado">
+          <option value="Todos">Estado: Todos</option>
+          ${ESTADOS_DOC.map(x => `<option ${x===f.estado?'selected':''}>${x}</option>`).join('')}
+        </select>
+      </div>
+      <div class="tbl-wrap" id="d-tabla">${listaDocumentos()}</div>
+    </section>
+
+  </div>`;
+}
+
+/* ---------- Justificar una ausencia ---------- */
+function chipPlazo(pl){
+  return pl.vencido
+    ? `<span class="badge b-rechazada">Fuera de plazo</span>`
+    : `<span class="badge b-aprobada">Quedan ${pl.restanHs} h</span>`;
+}
+
+function pasoJustAusencia(){
+  const j = store.just;
+  const opciones = misAusencias().map(a => {
+    const pl = plazo(a.fecha);
+    const sel = j.ausencia === a.id;
+    return `<label class="pick ${sel?'on':''}">
+      <input type="radio" name="ausencia" value="${a.id}" ${sel?'checked':''}>
+      <span class="pick-body">
+        <span class="pick-top">
+          <span class="strong">Ausencia del ${fechaCorta(a.fecha)}</span>
+          ${chipPlazo(pl)}
+        </span>
+        <span class="xs">${a.tramite} · Informada por ${a.motivo.toLowerCase()}</span>
+        <span class="xs">${pl.vencido
+          ? `El plazo de ${PLAZO_HS} h venció el ${pl.texto}.`
+          : `Vence el ${pl.texto}.`}</span>
+      </span>
+    </label>`;
+  }).join('');
+
+  return `<div class="stack">
+    <div class="card" style="padding:1.5rem">
+      <h2 style="font-size:.875rem;font-weight:600">¿Qué ausencia querés justificar?</h2>
+      <p class="sub" style="margin-top:.25rem">Aparecen las ausencias que informaste y todavía no tienen certificado presentado.</p>
+      <div class="picks" style="margin-top:1rem">${opciones}</div>
+    </div>
+
+    <div class="alert">
+      Tenés ${PLAZO_HS} horas desde el inicio de la ausencia para presentar el certificado.
+      Si el plazo venció, igual podés enviarlo: queda registrado como presentado fuera de plazo y lo evalúa RRHH.
+    </div>
+
+    <div class="wizard-nav end">
+      <button class="btn btn-primary" id="j-cont" ${j.ausencia?'':'disabled'}>Continuar ${svg('i-arrowright',16)}</button>
+    </div>
+  </div>`;
+}
+
+function pasoJustDoc(){
+  const j = store.just;
+  const a = AUSENCIAS.filter(x => x.id === j.ausencia)[0];
+  const pl = a ? plazo(a.fecha) : null;
+  const listo = j.tipoDoc && j.archivo;
+
+  return `<div class="stack">
+    <div class="card rowbar">
+      <div class="row">
+        ${svg('i-calx',20,'style="color:var(--muted-fg)"')}
+        <div>
+          <p class="strong">Ausencia del ${a?fechaCorta(a.fecha):'—'}</p>
+          <p class="xs">${a?a.tramite:''} · Informada por ${a?a.motivo.toLowerCase():''}</p>
+        </div>
+      </div>
+      ${pl?chipPlazo(pl):''}
+    </div>
+
+    ${pl && pl.vencido ? `<div class="alert bad">
+      Estás presentando el certificado fuera de plazo (vencía el ${pl.texto}).
+      Podés enviarlo de todos modos: RRHH lo revisa y decide si justifica la ausencia.
+    </div>` : ''}
+
+    <div class="card" style="padding:1.5rem">
+      <div class="field">
+        <label class="lbl" for="j-tipo">Tipo de documentación</label>
+        <select class="select" id="j-tipo">
+          <option value="">Elegí un tipo…</option>
+          ${['Certificado médico','Constancia de atención','Otra documentación']
+            .map(x => `<option ${x===j.tipoDoc?'selected':''}>${x}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field" style="margin-top:1rem">
+        <label class="lbl">Archivo</label>
+        ${j.archivo
+          ? `<div class="file">
+               <div class="row">
+                 <span class="iconbox" style="height:2.25rem;width:2.25rem">${svg('i-filetext',16)}</span>
+                 <p class="strong" style="word-break:break-word">${esc(j.archivo)}</p>
+               </div>
+               <button class="icon-btn" id="j-quitar" aria-label="Quitar archivo" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+             </div>`
+          : `<button class="dz" id="j-dz">
+               ${svg('i-upload',24,'style="color:var(--muted-fg)"')}
+               <span class="strong">Adjuntar certificado</span>
+               <span class="xs">PDF o foto del certificado (máx. 5 MB)</span>
+             </button>`}
+        <input type="file" id="j-file" accept=".pdf,image/*" class="sr">
+      </div>
+
+      <div class="field" style="margin-top:1rem">
+        <label class="lbl" for="j-com">Comentario <span style="font-weight:400;color:var(--muted-fg)">(opcional)</span></label>
+        <textarea class="textarea" id="j-com" rows="3" placeholder="${pl && pl.vencido
+          ? 'Si la demora tuvo un motivo, contalo acá.'
+          : 'Agregá una aclaración para RRHH si lo necesitás.'}">${esc(j.comentario)}</textarea>
+      </div>
+    </div>
+
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="j-volver">${svg('i-arrowleft',16)} Volver</button>
+      <button class="btn btn-primary" id="j-enviar" ${listo?'':'disabled'}>Enviar a RRHH ${svg('i-arrowright',16)}</button>
+    </div>
+  </div>`;
+}
+
+function pasoJustListo(){
+  const j = store.just;
+  const a = AUSENCIAS.filter(x => x.id === j.ausencia)[0];
+  const pl = a ? plazo(a.fecha) : null;
+
+  return `<div class="card done">
+    <span class="circle">${svg('i-check',32)}</span>
+    <div>
+      <h2 style="font-size:1.25rem;font-weight:600">Certificado enviado</h2>
+      <p class="sub" style="margin-top:.5rem;max-width:28rem;line-height:1.6">
+        RRHH va a validar la documentación de tu ausencia del ${a?fechaCorta(a.fecha):'—'}.
+        Vas a recibir una novedad cuando esté resuelto y podés seguir el estado en Documentos.
+      </p>
+    </div>
+    <div class="recap">
+      <div><span class="xs">N.º de trámite</span><span style="font-weight:600">TR-2053</span></div>
+      <div><span class="xs">Estado</span><span class="strong">En validación</span></div>
+      <div><span class="xs">Presentación</span><span class="strong">${pl && pl.vencido ? 'Fuera de plazo' : 'Dentro de plazo'}</span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center">
+      <a class="btn btn-primary" href="#/documentos">Ir a Documentos</a>
+      <a class="btn btn-outline" href="#/">Volver al Inicio</a>
+    </div>
+  </div>`;
+}
+
+function vJustificar(){
+  const j = store.just;
+  const orden = ['ausencia','doc','listo'];
+  const i = orden.indexOf(j.paso);
+  const labels = [['1. Ausencia','1. Ausencia'],['2. Documentación','2. Documento'],['3. Confirmación','3. Listo']];
+  const steps = labels.map(([full, short], idx) => {
+    const st = idx === i ? 'on' : idx < i ? 'done' : 'off';
+    return `<li data-s="${st}"><span><span class="full">${full}</span><span class="short">${short}</span></span></li>`;
+  }).join('');
+
+  const cuerpo = j.paso === 'ausencia' ? pasoJustAusencia() : j.paso === 'doc' ? pasoJustDoc() : pasoJustListo();
+
+  return `<div class="container narrow">
+    <a class="back" href="#/solicitudes/nuevo">${svg('i-arrowleft',16)} Volver a Nuevo trámite</a>
+    <header class="row">
+      <span class="iconbox lg">${svg('i-filecheck',20)}</span>
+      <div>
+        <h1 class="h1">Justificar una ausencia</h1>
+        <p class="sub">Adjuntá la documentación de una ausencia que ya informaste.</p>
+      </div>
+    </header>
+    <ol class="steps">${steps}</ol>
+    <div id="j-cuerpo">${cuerpo}</div>
+  </div>`;
+}
+
+/* =========================================================
+   PERFIL RRHH
+   ========================================================= */
+function celdaAgente(id){
+  const a = agente(id);
+  if (!a) return '—';
+  return `<span class="ag">
+    <span class="avatar">${a.iniciales}</span>
+    <span class="txt"><span class="n">${a.nombre}</span><span class="d">Legajo ${a.legajo} · ${a.area}</span></span>
+  </span>`;
+}
+
+function vInicioRRHH(){
+  const val = aValidar(), reg = aRegistrar(), pend = aAprobar();
+  const ultimas = val.slice(0,4);
+
+  return `<div class="container">
+    <div style="display:flex;flex-direction:column;gap:.25rem">
+      <h1 class="h1">Gestión de RRHH</h1>
+      <p class="sub">Validación de documentación, registro de licencias y saldos de los agentes.</p>
+    </div>
+
+    <div class="kpis">
+      <a class="kpi" href="#/rrhh/validaciones">
+        <div class="top"><span class="iconbox tone-warning">${svg('i-filecheck')}</span>${svg('i-chevright',18,'style="color:var(--muted-fg)"')}</div>
+        <span class="n">${val.length}</span>
+        <span class="l">Documentos a validar</span>
+        <span class="d">Certificados y constancias presentados por agentes</span>
+      </a>
+      <a class="kpi" href="#/rrhh/tramites">
+        <div class="top"><span class="iconbox tone-info">${svg('i-cal')}</span>${svg('i-chevright',18,'style="color:var(--muted-fg)"')}</div>
+        <span class="n">${reg.length}</span>
+        <span class="l">Licencias a registrar</span>
+        <span class="d">Aprobadas por el Director, falta registrarlas</span>
+      </a>
+      <div class="kpi">
+        <div class="top"><span class="iconbox">${svg('i-clock')}</span></div>
+        <span class="n">${pend.length}</span>
+        <span class="l">En manos del Director</span>
+        <span class="d">Esperan aprobación, RRHH no interviene todavía</span>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="h2">Documentación más reciente</h2>
+        <a class="link" href="#/rrhh/validaciones">Ver todo ${svg('i-arrowright',16)}</a>
+      </div>
+      ${ultimas.length ? `<ul class="list-div">${ultimas.map(dd => `
+        <li><div class="nov" style="cursor:default">
+          <span class="iconbox tone-info">${svg('i-filetext')}</span>
+          <div class="nov-row">
+            <div class="nov-top">
+              <p class="strong">${dd.nombre}</p>
+              <span class="nov-time">${dd.fecha?fechaCorta(dd.fecha):'—'}</span>
+            </div>
+            <p class="sub">${nombreAgente(dd.agente)} · ${dd.tramite} · ${dd.tipoTramite}</p>
+          </div>
+        </div></li>`).join('')}</ul>`
+      : `<div class="empty"><span class="circle">${svg('i-check',20)}</span>
+           <p class="strong">No hay documentación pendiente</p>
+           <p class="sub">Todo lo presentado por los agentes ya fue validado.</p></div>`}
+    </section>
+  </div>`;
+}
+
+function vValidaciones(){
+  const filas = aValidar();
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Validaciones</h1>
+      <p class="sub" style="margin-top:.25rem">Documentación presentada por los agentes que espera tu revisión.</p>
+    </div>
+
+    <div class="tbl-wrap" id="v-tabla">
+      ${filas.length ? `<table>
+        <thead><tr>
+          <th>Agente</th><th>Documento</th><th>Trámite</th><th>Presentado</th><th class="t-right">Acciones</th>
+        </tr></thead>
+        <tbody>${filas.map(dd => `<tr>
+          <td data-l="Agente">${celdaAgente(dd.agente)}</td>
+          <td data-l="Documento">
+            <p class="doc-name">${dd.nombre}</p>
+            <span class="origen">${dd.tipoDoc}</span>
+            ${dd.fueraPlazo || (dd.nota && dd.nota.indexOf('fuera del plazo')>=0)
+              ? `<p class="nota">Presentado fuera del plazo de ${PLAZO_HS} h</p>` : ''}
+          </td>
+          <td data-l="Trámite" class="sub">${dd.tramite} · ${dd.tipoTramite}</td>
+          <td data-l="Presentado" class="sub">${dd.fecha?fechaCorta(dd.fecha):'—'}</td>
+          <td class="t-right"><span class="acciones">
+            <button class="btn btn-ghost btn-sm" data-ver="${dd.id}">${svg('i-eye',16)} Ver</button>
+            <button class="btn btn-outline btn-sm" data-rechazar-doc="${dd.id}">Rechazar</button>
+            <button class="btn btn-primary btn-sm" data-validar="${dd.id}">${svg('i-check',16)} Validar</button>
+          </span></td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty">
+        <span class="circle">${svg('i-check',20)}</span>
+        <p class="strong">No hay nada para validar</p>
+        <p class="sub">Cuando un agente presente documentación, va a aparecer acá.</p>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function vTramitesRRHH(){
+  const f = store.rrhh;
+  const t = f.q.trim().toLowerCase();
+  const filas = SOLICITUDES.filter(x =>
+    (t === '' || x.numero.toLowerCase().includes(t) || x.tipo.toLowerCase().includes(t) || nombreAgente(x.agente).toLowerCase().includes(t)) &&
+    (f.estado === 'Todos' || x.estado === f.estado)
+  );
+
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Trámites</h1>
+      <p class="sub" style="margin-top:.25rem">Todos los trámites del organismo. Las licencias aprobadas por el Director se registran desde acá.</p>
+    </div>
+
+    <div class="filters">
+      <div class="searchbox grow" style="display:block;max-width:none">
+        ${svg('i-search',16,'style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg)"')}
+        <input id="r-q" class="input" type="text" value="${esc(f.q)}" placeholder="Buscar por agente, número o tipo" aria-label="Buscar trámites">
+      </div>
+      <select id="r-estado" class="select" aria-label="Filtrar por estado">
+        <option value="Todos">Estado: Todos</option>
+        ${ESTADOS.map(e => `<option ${e===f.estado?'selected':''}>${e}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="tbl-wrap" id="r-tabla">
+      ${filas.length ? `<table>
+        <thead><tr>
+          <th>Agente</th><th>N.º</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th class="t-right">Acción</th>
+        </tr></thead>
+        <tbody>${filas.map(x => `<tr>
+          <td data-l="Agente">${celdaAgente(x.agente)}</td>
+          <td data-l="N.º" class="num">${x.numero}</td>
+          <td data-l="Tipo" class="sub">${x.tipo}${x.periodo?`<br><span class="xs">${x.dias} ${x.dias===1?'día':'días'} · ${x.periodo}</span>`:''}</td>
+          <td data-l="Estado"><span class="badge ${badgeClass(x.estado)}">${x.estado}</span></td>
+          <td data-l="Fecha" class="sub">${fechaCorta(x.fecha)}</td>
+          <td class="t-right">${x.estado === 'Aprobada'
+            ? `<button class="btn btn-primary btn-sm" data-registrar="${x.numero}">${svg('i-check',16)} Registrar</button>`
+            : `<span class="xs">—</span>`}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty">
+        <span class="circle">${svg('i-cal',20)}</span>
+        <p class="strong">Sin resultados</p>
+        <p class="sub">No se encontraron trámites con los filtros aplicados.</p>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function vAgentes(){
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Agentes</h1>
+      <p class="sub" style="margin-top:.25rem">Saldos de licencia por agente. Los ajustes quedan registrados con su motivo.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Agente</th><th>Licencia Anual Ordinaria</th><th>Imprevistos</th><th class="t-right">Acción</th>
+        </tr></thead>
+        <tbody>${AGENTES.map(a => {
+          const lao = a.saldos.lao, imp = a.saldos.imp;
+          const pct = t => t.total ? Math.round(t.disp / t.total * 100) : 0;
+          return `<tr>
+            <td data-l="Agente">${celdaAgente(a.id)}</td>
+            <td data-l="Licencia Anual Ordinaria">
+              <span class="mini-bar">
+                <span class="strong">${lao.disp}/${lao.total}</span>
+                <span class="bar"><span style="display:block;height:100%;border-radius:999px;background:var(--ok);width:${pct(lao)}%"></span></span>
+              </span>
+            </td>
+            <td data-l="Imprevistos">
+              <span class="mini-bar">
+                <span class="strong">${imp.disp}/${imp.total}</span>
+                <span class="bar"><span style="display:block;height:100%;border-radius:999px;background:var(--ok);width:${pct(imp)}%"></span></span>
+              </span>
+            </td>
+            <td class="t-right"><span class="acciones">
+              <a class="btn btn-ghost btn-sm" href="#/rrhh/legajos/${a.id}">${svg('i-folderlock',16)} Legajo</a>
+              <button class="btn btn-outline btn-sm" data-ajustar="${a.id}">Ajustar saldo</button>
+            </span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function vNovedadesRRHH(){
+  const n = store.pub;
+  const listo = n.titulo.trim() && n.detalle.trim();
+
+  return `<div class="container narrow">
+    <div>
+      <h1 class="h1">Novedades</h1>
+      <p class="sub" style="margin-top:.25rem">Lo que publiques acá aparece en el Inicio de los agentes y en su campana de notificaciones.</p>
+    </div>
+
+    <div class="card" style="padding:1.5rem">
+      <div class="field">
+        <label class="lbl" for="p-titulo">Título</label>
+        <input class="input" id="p-titulo" value="${esc(n.titulo)}" placeholder="Ej.: Recibos de sueldo disponibles">
+      </div>
+      <div class="field" style="margin-top:1rem">
+        <label class="lbl" for="p-detalle">Detalle</label>
+        <textarea class="textarea" id="p-detalle" rows="3" placeholder="Contá qué necesita saber el agente y qué tiene que hacer.">${esc(n.detalle)}</textarea>
+      </div>
+      <div class="dl2" style="margin-top:1rem">
+        <div class="field">
+          <label class="lbl" for="p-tono">Tipo de aviso</label>
+          <select class="select" id="p-tono">
+            <option value="info" ${n.tono==='info'?'selected':''}>Informativo</option>
+            <option value="success" ${n.tono==='success'?'selected':''}>Positivo</option>
+            <option value="warning" ${n.tono==='warning'?'selected':''}>Requiere atención</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="p-dest">Destinatarios</label>
+          <select class="select" id="p-dest">
+            <option ${n.dest==='Todos los agentes'?'selected':''}>Todos los agentes</option>
+            ${[...new Set(AGENTES.map(a => a.area))].map(ar => `<option ${n.dest===ar?'selected':''}>${ar}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:1rem">
+        <label class="lbl" for="p-link">Enlace externo <span style="font-weight:400;color:var(--muted-fg)">(opcional)</span></label>
+        <input class="input" id="p-link" value="${esc(n.link)}" placeholder="https://…">
+      </div>
+      <div class="wizard-nav end" style="margin-top:1.5rem">
+        <button class="btn btn-primary" id="p-publicar" ${listo?'':'disabled'}>Publicar novedad ${svg('i-arrowright',16)}</button>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="h2">Publicadas</h2>
+        <span class="count">${NOVEDADES.length}</span>
+      </div>
+      <ul class="list-div">${NOVEDADES.slice(0,6).map((x,i) => `
+        <li><div class="nov" style="cursor:default">
+          <span class="iconbox tone-${x.tone}">${svg(x.icon)}</span>
+          <div class="nov-row">
+            <div class="nov-top"><p class="strong">${x.title}</p><span class="nov-time">${x.time}</span></div>
+            <p class="sub">${x.detail}</p>
+          </div>
+          ${x.propia?`<button class="icon-btn" data-borrar="${i}" aria-label="Quitar novedad" style="height:2rem;width:2rem">${svg('i-x',16)}</button>`:''}
+        </div></li>`).join('')}</ul>
+    </section>
+  </div>`;
+}
+
+/* =========================================================
+   PERFIL DIRECTOR
+   ========================================================= */
+function vInicioDirector(){
+  const pend = aAprobar();
+  const equipo = equipoDirector();
+  const ids = equipo.map(a => a.id);
+  const enCurso = SOLICITUDES.filter(x => ids.indexOf(x.agente) >= 0 && (x.estado === 'Aprobada' || x.estado === 'Registrada'));
+  const sinSaldo = equipo.filter(a => a.saldos.imp.disp === 0).length;
+
+  return `<div class="container">
+    <div style="display:flex;flex-direction:column;gap:.25rem">
+      <h1 class="h1">Portal del Director</h1>
+      <p class="sub">${areaDelDirector()} · Aprobación de solicitudes y estado del equipo.</p>
+    </div>
+
+    <div class="kpis">
+      <a class="kpi" href="#/director/aprobaciones">
+        <div class="top"><span class="iconbox tone-warning">${svg('i-filecheck')}</span>${svg('i-chevright',18,'style="color:var(--muted-fg)"')}</div>
+        <span class="n">${pend.length}</span>
+        <span class="l">Esperan tu aprobación</span>
+        <span class="d">Licencias e imprevistos solicitados por tu equipo</span>
+      </a>
+      <a class="kpi" href="#/director/equipo">
+        <div class="top"><span class="iconbox tone-info">${svg('i-user')}</span>${svg('i-chevright',18,'style="color:var(--muted-fg)"')}</div>
+        <span class="n">${equipo.length}</span>
+        <span class="l">Agentes a cargo</span>
+        <span class="d">${areaDelDirector()}</span>
+      </a>
+      <div class="kpi">
+        <div class="top"><span class="iconbox">${svg('i-cal')}</span></div>
+        <span class="n">${enCurso.length}</span>
+        <span class="l">Licencias en curso</span>
+        <span class="d">${sinSaldo ? sinSaldo + ' agente(s) sin imprevistos disponibles' : 'Todo el equipo con saldo disponible'}</span>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="h2">Pendientes de aprobación</h2>
+        <a class="link" href="#/director/aprobaciones">Ver todo ${svg('i-arrowright',16)}</a>
+      </div>
+      ${pend.length ? `<ul class="list-div">${pend.slice(0,4).map(x => `
+        <li><div class="nov" style="cursor:default">
+          <span class="iconbox tone-warning">${svg('i-clock')}</span>
+          <div class="nov-row">
+            <div class="nov-top">
+              <p class="strong">${nombreAgente(x.agente)} · ${x.tipo}</p>
+              <span class="nov-time">${fechaCorta(x.fecha)}</span>
+            </div>
+            <p class="sub">${x.numero}${x.periodo?` · ${x.dias} ${x.dias===1?'día':'días'} · ${x.periodo}`:''}</p>
+          </div>
+        </div></li>`).join('')}</ul>`
+      : `<div class="empty"><span class="circle">${svg('i-check',20)}</span>
+           <p class="strong">No tenés solicitudes pendientes</p>
+           <p class="sub">Cuando alguien de tu equipo solicite una licencia, va a aparecer acá.</p></div>`}
+    </section>
+  </div>`;
+}
+
+/* Quién más del área ya está fuera en ese período. Es el dato que le falta al
+   Director para decidir sin abrir el almanaque. */
+function superpuestos(sol){
+  if (!sol.desde) return [];
+  const vistos = {};
+  eventos().forEach(e => {
+    if (e.agente === sol.agente) return;
+    if (!esDeMiArea(e.agente)) return;
+    if (e.hasta < sol.desde || e.desde > (sol.hasta || sol.desde)) return;
+    vistos[e.agente] = true;
+  });
+  return Object.keys(vistos).map(id => agente(id).nombre);
+}
+
+function vAprobaciones(){
+  const filas = aAprobar();
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Aprobaciones</h1>
+      <p class="sub" style="margin-top:.25rem">Solicitudes de tu equipo que esperan tu decisión. Al aprobarlas pasan a RRHH para su registro.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      ${filas.length ? `<table>
+        <thead><tr>
+          <th>Agente</th><th>Solicitud</th><th>Período</th><th>Saldo del agente</th><th class="t-right">Decisión</th>
+        </tr></thead>
+        <tbody>${filas.map(x => {
+          const a = agente(x.agente);
+          const sd = x.tipo === 'Imprevisto' ? a.saldos.imp : a.saldos.lao;
+          const alcanza = !x.dias || x.dias <= sd.disp;
+          return `<tr>
+            <td data-l="Agente">${celdaAgente(x.agente)}</td>
+            <td data-l="Solicitud">
+              <p class="strong">${x.tipo}</p>
+              <span class="origen">${x.numero} · solicitada el ${fechaCorta(x.fecha)}</span>
+            </td>
+            <td data-l="Período" class="sub">${x.periodo || '—'}${x.dias?`<br><span class="xs">${x.dias} ${x.dias===1?'día':'días'}</span>`:''}
+              ${(() => { const sp = superpuestos(x); return sp.length
+                ? `<p class="conflicto">Se superpone con ${sp.join(' y ')}</p>` : ''; })()}</td>
+            <td data-l="Saldo del agente">
+              <span class="strong">${sd.disp}/${sd.total}</span>
+              ${alcanza ? '' : `<p class="nota">No le alcanza el saldo</p>`}
+            </td>
+            <td class="t-right"><span class="acciones">
+              <button class="btn btn-outline btn-sm" data-rechazar-sol="${x.numero}">Rechazar</button>
+              <button class="btn btn-primary btn-sm" data-aprobar="${x.numero}">${svg('i-check',16)} Aprobar</button>
+            </span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>` : `<div class="empty">
+        <span class="circle">${svg('i-check',20)}</span>
+        <p class="strong">No hay solicitudes pendientes</p>
+        <p class="sub">Ya resolviste todo lo que tenía tu equipo.</p>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function vEquipo(){
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Mi equipo</h1>
+      <p class="sub" style="margin-top:.25rem">Saldos y trámites en curso de los agentes a tu cargo.</p>
+    </div>
+
+    <div class="cards-2">${equipoDirector().map(a => {
+      const suyos = SOLICITUDES.filter(x => x.agente === a.id);
+      const pend = suyos.filter(x => x.estado === 'Pendiente').length;
+      return `<div class="card card-pad">
+        <div class="ag" style="margin-bottom:1rem">
+          <span class="avatar">${a.iniciales}</span>
+          <span class="txt"><span class="n">${a.nombre}</span><span class="d">Legajo ${a.legajo} · ${a.area}</span></span>
+        </div>
+        <div class="dl2">
+          <div>
+            <p class="xs">Licencia Anual Ordinaria</p>
+            <p class="strong">${a.saldos.lao.disp} de ${a.saldos.lao.total} días</p>
+          </div>
+          <div>
+            <p class="xs">Imprevistos</p>
+            <p class="strong">${a.saldos.imp.disp} de ${a.saldos.imp.total} días</p>
+          </div>
+        </div>
+        <p class="sub" style="margin-top:1rem">${suyos.length} trámite${suyos.length===1?'':'s'} este año${pend?` · ${pend} esperando tu aprobación`:''}</p>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+/* =========================================================
+   MODALES COMPARTIDOS
+   ========================================================= */
+function modalHTML(){
+  const m = store.modal;
+  if (!m) return '';
+
+  if (m.kind === 'rechazar-doc' || m.kind === 'rechazar-sol'){
+    const esDoc = m.kind === 'rechazar-doc';
+    return `<div class="modal-back" data-open="true" id="modal-back">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-tit">
+        <div class="modal-head">
+          <div>
+            <h2 class="h2" id="m-tit">${esDoc ? 'Rechazar documentación' : 'Rechazar solicitud'}</h2>
+            <p class="sub" style="margin-top:.25rem">${m.sub}</p>
+          </div>
+          <button class="icon-btn" data-cerrar-modal aria-label="Cerrar" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label class="lbl" for="m-motivo">Motivo</label>
+            <textarea class="textarea" id="m-motivo" rows="3" placeholder="${esDoc
+              ? 'Ej.: el certificado está ilegible.'
+              : 'Ej.: coincide con la licencia de otro agente del área.'}">${esc(m.motivo||'')}</textarea>
+            <p class="xs">El agente va a ver este motivo en su portal.</p>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
+          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>Rechazar</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (m.kind === 'dia'){
+    const evs = eventosDelDia(m.iso, m.area);
+    const q = (m.q || '').trim().toLowerCase();
+    const visibles = evs.filter(e => q === '' ||
+      agente(e.agente).nombre.toLowerCase().includes(q) ||
+      agente(e.agente).legajo.indexOf(q) >= 0);
+
+    const fecha = new Date(m.iso+'T00:00:00').toLocaleDateString('es-AR',
+      { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    /* Con muchos agentes conviene leerlo agrupado por área. */
+    const areas = [];
+    visibles.forEach(e => { const ar = agente(e.agente).area; if (areas.indexOf(ar) < 0) areas.push(ar); });
+    areas.sort();
+
+    const cifras = Object.keys(CLASES_EVENTO)
+      .map(k => ({ k:k, n:evs.filter(e => e.clase === k).length }))
+      .filter(x => x.n > 0)
+      .map(x => `<span class="chip ${x.k}"><span class="txt">${x.n} ${CLASES_EVENTO[x.k].toLowerCase()}</span></span>`)
+      .join('');
+
+    return `<div class="modal-back" data-open="true" id="modal-back">
+      <div class="modal ancho" role="dialog" aria-modal="true" aria-labelledby="m-tit">
+        <div class="modal-head">
+          <div>
+            <h2 class="h2 cap" id="m-tit">${fecha}</h2>
+            <p class="sub" style="margin-top:.25rem">${evs.length} agente${evs.length===1?'':'s'} ausente${evs.length===1?'':'s'}${
+              m.area !== 'Todas' ? ' en ' + m.area : ' en todo el organismo'}</p>
+            <div class="dia-cifras">${cifras || '<span class="xs">Sin ausencias registradas</span>'}</div>
+          </div>
+          <button class="icon-btn" data-cerrar-modal aria-label="Cerrar" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+        </div>
+
+        <div class="modal-body">
+          ${evs.length > 2 ? `<div class="filters">
+            <div class="searchbox grow" style="display:block;max-width:none">
+              ${svg('i-search',16,'style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg)"')}
+              <input id="m-q" class="input" type="text" value="${esc(m.q||'')}" placeholder="Buscar por nombre o legajo" aria-label="Buscar agente">
+            </div>
+            ${store.rol === 'rrhh' ? `<select id="m-area" class="select" aria-label="Filtrar por área">
+              <option ${m.area==='Todas'?'selected':''}>Todas</option>
+              ${AREAS.map(ar => `<option ${m.area===ar?'selected':''}>${ar}</option>`).join('')}
+            </select>` : ''}
+          </div>` : ''}
+
+          ${visibles.length ? areas.map(ar => {
+            const dentro = visibles.filter(e => agente(e.agente).area === ar);
+            return `<div class="grupo">
+              <h3>${ar} · ${dentro.length}</h3>
+              <ul>${dentro.map(e => {
+                const a = agente(e.agente);
+                return `<li>
+                  <span class="avatar">${a.iniciales}</span>
+                  <span style="display:flex;flex-direction:column;min-width:0">
+                    <span class="strong">${a.nombre}</span>
+                    <span class="xs">Legajo ${a.legajo} · ${e.tramite}</span>
+                  </span>
+                  <span class="der">
+                    <span class="chip ${e.clase}"><span class="txt">${e.etiqueta}</span></span>
+                    <p class="xs" style="margin-top:.1875rem">${e.estado}</p>
+                  </span>
+                </li>`;
+              }).join('')}</ul>
+            </div>`;
+          }).join('') : `<div class="empty" style="padding:2.5rem 1rem">
+            <span class="circle">${svg('i-check',20)}</span>
+            <p class="strong">${q ? 'Sin coincidencias' : 'Sin ausencias'}</p>
+            <p class="sub">${q ? 'Ningún agente ausente coincide con la búsqueda.' : 'Ese día está el equipo completo.'}</p>
+          </div>`}
+        </div>
+
+        <div class="modal-foot">
+          ${store.rol === 'rrhh' ? `<button class="btn btn-outline" id="m-ir-parte">${svg('i-filetext',16)} Abrir parte de este día</button>` : ''}
+          <button class="btn btn-primary" data-cerrar-modal>Cerrar</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (m.kind === 'enviar-parte'){
+    const evs = eventosDelDia(m.iso, 'Todas');
+    const dest = destinatariosParte();
+    const fecha = new Date(m.iso+'T00:00:00').toLocaleDateString('es-AR',
+      { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    return `<div class="modal-back" data-open="true" id="modal-back">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-tit">
+        <div class="modal-head">
+          <div>
+            <h2 class="h2" id="m-tit">Enviar parte a ${AREA_PARTE}</h2>
+            <p class="sub cap" style="margin-top:.25rem">${fecha}</p>
+          </div>
+          <button class="icon-btn" data-cerrar-modal aria-label="Cerrar" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+        </div>
+        <div class="modal-body">
+          <div class="aviso">${svg('i-filetext',16)}
+            <span>Se envía el parte completo del día, con ${evs.length} ausente${evs.length===1?'':'s'} de todas las áreas.</span>
+          </div>
+
+          <div>
+            <p class="lbl" style="margin-bottom:.25rem">Destinatarios designados</p>
+            ${dest.length ? dest.map(a => {
+              const ausente = eventosDelDia(m.iso,'Todas').filter(e => e.agente === a.id)[0];
+              return `<div class="dest">
+                <span class="avatar">${a.iniciales}</span>
+                <span style="display:flex;flex-direction:column;min-width:0">
+                  <span class="strong">${a.nombre}</span>
+                  <span class="xs">${a.correo}</span>
+                </span>
+                <span class="der">${ausente
+                  ? `<span class="chip ${ausente.clase}"><span class="txt">ausente ese día</span></span>`
+                  : 'Activo'}</span>
+              </div>`;
+            }).join('') : `<p class="sub">No hay agentes designados en ${AREA_PARTE}.</p>`}
+            <p class="xs" style="margin-top:.5rem">Falta definir con RRHH cómo se designa quién recibe el parte.</p>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="m-motivo">Nota para ${AREA_PARTE} <span style="font-weight:400;color:var(--muted-fg)">(opcional)</span></label>
+            <textarea class="textarea" id="m-motivo" rows="2" placeholder="Ej.: se agrega una ausencia informada después del mediodía.">${esc(m.motivo||'')}</textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
+          <button class="btn btn-primary" id="m-confirmar" ${dest.length?'':'disabled'}>Enviar parte</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  if (m.kind === 'ajustar-saldo'){
+    const a = agente(m.id);
+    return `<div class="modal-back" data-open="true" id="modal-back">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-tit">
+        <div class="modal-head">
+          <div>
+            <h2 class="h2" id="m-tit">Ajustar saldo</h2>
+            <p class="sub" style="margin-top:.25rem">${a.nombre} · Legajo ${a.legajo}</p>
+          </div>
+          <button class="icon-btn" data-cerrar-modal aria-label="Cerrar" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+        </div>
+        <div class="modal-body">
+          <div class="dl2">
+            <div class="field">
+              <label class="lbl" for="m-lao">Licencia Anual Ordinaria</label>
+              <input class="input num-in" id="m-lao" type="number" min="0" max="${a.saldos.lao.total}" value="${m.lao}">
+              <p class="xs">Sobre un total de ${a.saldos.lao.total} días</p>
+            </div>
+            <div class="field">
+              <label class="lbl" for="m-imp">Imprevistos</label>
+              <input class="input num-in" id="m-imp" type="number" min="0" max="${a.saldos.imp.total}" value="${m.imp}">
+              <p class="xs">Sobre un total de ${a.saldos.imp.total} días</p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="lbl" for="m-motivo">Motivo del ajuste</label>
+            <textarea class="textarea" id="m-motivo" rows="2" placeholder="Ej.: reconocimiento de días del período anterior.">${esc(m.motivo||'')}</textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
+          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>Guardar ajuste</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+/* =========================================================
+   AUSENCIAS: almanaque y parte diario
+   ========================================================= */
+
+/* Estado de la justificación de una ausencia por salud, según lo presentado. */
+function estadoJustificacion(ausId){
+  const dd = docsTodos().filter(x => x.ausencia === ausId && x.estado !== 'Pendiente de adjuntar')[0];
+  if (!dd) return 'Sin justificar';
+  if (dd.estado === 'Validado')  return 'Justificada';
+  if (dd.estado === 'Rechazado') return 'Rechazada';
+  return 'En validación';
+}
+
+/* Todo lo que deja a un agente fuera de su puesto, en un mismo formato. */
+function eventos(){
+  const out = [];
+  SOLICITUDES.forEach(x => {
+    if (!x.desde) return;
+    if (x.estado !== 'Aprobada' && x.estado !== 'Registrada') return;
+    out.push({
+      agente:x.agente, desde:x.desde, hasta:x.hasta || x.desde,
+      clase: x.tipo === 'Imprevisto' ? 'imprevisto' : 'licencia',
+      etiqueta:x.tipo, tramite:x.numero, estado:x.estado,
+    });
+  });
+  AUSENCIAS.forEach(a => {
+    const est = estadoJustificacion(a.id);
+    out.push({
+      agente:a.agente, desde:a.fecha, hasta:a.fecha,
+      clase: est === 'Sin justificar' || est === 'Rechazada' ? 'sinjust' : 'salud',
+      etiqueta:'Ausencia por ' + a.motivo.toLowerCase(), tramite:a.tramite, estado:est, ausencia:a.id,
+    });
+  });
+  return out;
+}
+
+function eventosDelDia(iso, ambito){
+  return eventos().filter(e => {
+    if (e.desde > iso || iso > e.hasta) return false;
+    if (ambito === 'Todas') return true;
+    const a = agente(e.agente);
+    return !!a && a.area === ambito;
+  });
+}
+
+const CLASES_EVENTO = {
+  licencia:   'Licencia',
+  imprevisto: 'Imprevisto',
+  salud:      'Ausencia justificada',
+  sinjust:    'Ausencia sin justificar',
+};
+
+function chipEvento(e, mini){
+  const a = agente(e.agente);
+  return `<span class="chip ${e.clase}" title="${a.nombre} · ${e.etiqueta}">
+    <span class="ini">${a.iniciales}</span>${mini?'':`<span class="txt">${a.nombre.split(' ')[0]}</span>`}
+  </span>`;
+}
+
+function vAlmanaque(){
+  const c = store.cal;
+  const esRRHH = store.rol === 'rrhh';
+  const ambito = esRRHH ? c.area : areaDelDirector();
+
+  const ancla = new Date(c.anio, c.mes, 1);
+  const nombreMes = ancla.toLocaleDateString('es-AR',{ month:'long', year:'numeric' });
+
+  /* Semana de lunes a domingo, siempre grilla completa. */
+  const offset = (ancla.getDay() + 6) % 7;
+  const inicio = new Date(c.anio, c.mes, 1 - offset);
+  let celdas = [];
+  for (let i = 0; i < 42; i++){
+    const d = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i);
+    celdas.push(d);
+  }
+  if (celdas[35].getMonth() !== c.mes) celdas = celdas.slice(0,35);
+
+  const hoy = hoyISO();
+  const dias = celdas.map(d => {
+    const iso = isoLocal(d);
+    const evs = eventosDelDia(iso, ambito);
+    const fuera = d.getMonth() !== c.mes;
+    const finde = d.getDay() === 0 || d.getDay() === 6;
+    const clases = ['cal-dia', fuera?'fuera':'', finde?'finde':'', iso===hoy?'hoy':'', iso===c.dia?'sel':''].join(' ');
+    return `<button class="${clases}" data-dia="${iso}" aria-label="${d.getDate()} — ${evs.length} ausente(s)">
+      <span class="cal-n">${d.getDate()}</span>
+      <span class="cal-chips">
+        ${evs.slice(0,2).map(e => chipEvento(e)).join('')}
+        ${evs.length > 2 ? `<span class="chip mas">+${evs.length-2}</span>` : ''}
+      </span>
+    </button>`;
+  }).join('');
+
+  const sel = c.dia || hoy;
+  const evsSel = eventosDelDia(sel, ambito);
+  const fechaSel = new Date(sel+'T00:00:00').toLocaleDateString('es-AR',
+    { weekday:'long', day:'numeric', month:'long' });
+
+  return `<div class="container">
+    <div class="between">
+      <div>
+        <h1 class="h1">Almanaque de ausencias</h1>
+        <p class="sub" style="margin-top:.25rem">${esRRHH
+          ? 'Licencias y ausencias de todo el organismo, día por día.'
+          : 'Licencias y ausencias de ' + areaDelDirector() + '.'}</p>
+      </div>
+      ${esRRHH ? `<select id="c-area" class="select" aria-label="Filtrar por área">
+        <option ${c.area==='Todas'?'selected':''}>Todas</option>
+        ${AREAS.map(ar => `<option ${c.area===ar?'selected':''}>${ar}</option>`).join('')}
+      </select>` : ''}
+    </div>
+
+    <div class="card card-pad">
+      <div class="cal-top">
+        <div class="row" style="gap:.25rem">
+          <button class="icon-btn" id="c-prev" aria-label="Mes anterior" style="height:2.25rem;width:2.25rem">${svg('i-chevright',18,'style="transform:rotate(180deg)"')}</button>
+          <h2 class="h2 cap" style="min-width:11rem;text-align:center">${nombreMes}</h2>
+          <button class="icon-btn" id="c-next" aria-label="Mes siguiente" style="height:2.25rem;width:2.25rem">${svg('i-chevright',18)}</button>
+        </div>
+        <button class="btn btn-outline btn-sm" id="c-hoy">Hoy</button>
+      </div>
+
+      <div class="cal-cab">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(x => `<span>${x}</span>`).join('')}</div>
+      <div class="cal-grid">${dias}</div>
+
+      <div class="cal-ref">
+        ${Object.keys(CLASES_EVENTO).map(k => `<span class="ref"><span class="pt ${k}"></span>${CLASES_EVENTO[k]}</span>`).join('')}
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="h2 cap">${fechaSel}</h2>
+        <span class="count">${evsSel.length} ausente${evsSel.length===1?'':'s'}</span>
+      </div>
+      ${evsSel.length ? `<ul class="list-div">${evsSel.map(e => `
+        <li><div class="nov" style="cursor:default">
+          <span class="avatar">${agente(e.agente).iniciales}</span>
+          <div class="nov-row">
+            <div class="nov-top">
+              <p class="strong">${agente(e.agente).nombre}</p>
+              <span class="chip ${e.clase}"><span class="txt">${e.etiqueta}</span></span>
+            </div>
+            <p class="sub">${agente(e.agente).area} · ${e.tramite}${
+              e.clase==='sinjust' || e.clase==='salud' ? ' · ' + e.estado : ''}</p>
+          </div>
+        </div></li>`).join('')}</ul>`
+      : `<div class="empty"><span class="circle">${svg('i-check',20)}</span>
+           <p class="strong">Sin ausencias</p>
+           <p class="sub">Ese día está el equipo completo.</p></div>`}
+    </section>
+  </div>`;
+}
+
+function vParteDiario(){
+  const dia = store.parte.dia || hoyISO();
+  const evs = eventosDelDia(dia, store.parte.area);
+  const cuenta = k => evs.filter(e => e.clase === k).length;
+  const sinJust = evs.filter(e => e.clase === 'sinjust');
+  const fechaLegible = new Date(dia+'T00:00:00').toLocaleDateString('es-AR',
+    { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  return `<div class="container">
+    <div class="between">
+      <div>
+        <h1 class="h1">Parte diario de ausencias</h1>
+        <p class="sub cap" style="margin-top:.25rem">${fechaLegible}</p>
+      </div>
+      <div class="acciones">
+        <button class="btn btn-outline" id="pd-bajar">${svg('i-arrowright',16,'style="transform:rotate(90deg)"')} Descargar parte</button>
+        <button class="btn btn-primary" id="pd-enviar">${svg('i-arrowright',16)} ${store.partes[dia]?'Reenviar a ':'Enviar a '}${AREA_PARTE}</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="field" style="flex:0 0 auto">
+        <label class="lbl" for="pd-dia">Día</label>
+        <input class="input" id="pd-dia" type="date" value="${dia}">
+      </div>
+      <div class="field" style="flex:0 0 auto">
+        <label class="lbl" for="pd-area">Área</label>
+        <select class="select" id="pd-area">
+          <option ${store.parte.area==='Todas'?'selected':''}>Todas</option>
+          ${AREAS.map(ar => `<option ${store.parte.area===ar?'selected':''}>${ar}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    ${(() => {
+      const env = store.partes[dia];
+      return env ? `<div class="aviso ok">${svg('i-check',16)}
+        <span>Parte enviado a ${AREA_PARTE} el ${env.fecha} a las ${env.hora} h, a ${env.destinatarios} destinatario${env.destinatarios===1?'':'s'}.${
+          env.nota ? ' Nota: ' + esc(env.nota) : ''}</span>
+      </div>` : '';
+    })()}
+
+    <div class="kpis">
+      <div class="kpi"><div class="top"><span class="iconbox">${svg('i-user')}</span></div>
+        <span class="n">${evs.length}</span><span class="l">Ausentes en total</span>
+        <span class="d">Sobre ${(store.parte.area==='Todas'?AGENTES:AGENTES.filter(a=>a.area===store.parte.area)).length} agentes</span></div>
+      <div class="kpi"><div class="top"><span class="iconbox tone-success">${svg('i-palm')}</span></div>
+        <span class="n">${cuenta('licencia') + cuenta('imprevisto')}</span><span class="l">Con licencia otorgada</span>
+        <span class="d">${cuenta('licencia')} anual · ${cuenta('imprevisto')} imprevisto</span></div>
+      <div class="kpi"><div class="top"><span class="iconbox ${sinJust.length?'tone-danger':'tone-info'}">${svg('i-ambulance')}</span></div>
+        <span class="n">${cuenta('salud') + sinJust.length}</span><span class="l">Por salud</span>
+        <span class="d">${sinJust.length ? sinJust.length + ' sin certificado presentado' : 'Todas con certificado'}</span></div>
+    </div>
+
+    ${sinJust.length ? `<div class="attn">
+      <div class="row"><span class="iconbox tone-warning">${svg('i-fileclock')}</span>
+        <h3>${sinJust.length} ausencia${sinJust.length===1?'':'s'} sin justificar</h3></div>
+      <p>${sinJust.map(e => agente(e.agente).nombre).join(', ')}. El plazo para presentar el certificado es de ${PLAZO_HS} h desde el inicio de la ausencia.</p>
+    </div>` : ''}
+
+    <div class="tbl-wrap">
+      ${evs.length ? `<table>
+        <thead><tr><th>Agente</th><th>Área</th><th>Motivo</th><th>Trámite</th><th>Estado</th></tr></thead>
+        <tbody>${evs.map(e => `<tr>
+          <td data-l="Agente">${celdaAgente(e.agente)}</td>
+          <td data-l="Área" class="sub">${agente(e.agente).area}</td>
+          <td data-l="Motivo"><span class="chip ${e.clase}"><span class="txt">${e.etiqueta}</span></span></td>
+          <td data-l="Trámite" class="sub">${e.tramite}</td>
+          <td data-l="Estado" class="sub">${e.estado}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty">
+        <span class="circle">${svg('i-check',20)}</span>
+        <p class="strong">Sin ausencias</p>
+        <p class="sub">Ese día no hay agentes ausentes en el alcance elegido.</p>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   LEGAJOS (RRHH)
+   ========================================================= */
+function antiguedad(iso){
+  const d = new Date(iso+'T00:00:00'), h = new Date();
+  let a = h.getFullYear() - d.getFullYear();
+  const m = h.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && h.getDate() < d.getDate())) a--;
+  return a + ' año' + (a === 1 ? '' : 's');
+}
+
+function dato(k, v){
+  return `<div class="dato"><p class="k">${k}</p><p class="v">${v || '—'}</p></div>`;
+}
+
+/* Apartados previstos que todavía no tienen contenido definido. */
+const MODULOS_LEGAJO = [
+  { titulo:'Capacitaciones', desc:'Cursos realizados, certificados y horas acreditadas. Definir si se cargan a mano o llegan desde otro sistema.' },
+  { titulo:'Antecedentes y sanciones', desc:'Actuaciones disciplinarias y su estado. Definir quién puede verlas y quién cargarlas.' },
+  { titulo:'Evaluación de desempeño', desc:'Resultados por período y observaciones del Director. Definir con qué periodicidad se registra.' },
+  { titulo:'Adscripciones y traslados', desc:'Movimientos entre áreas y organismos, con fecha de inicio y fin.' },
+  { titulo:'Familiares a cargo', desc:'Datos que habilitan licencias y asignaciones. Definir qué documentación los respalda.' },
+];
+
+function vLegajos(){
+  const q = store.legajos.q.trim().toLowerCase();
+  const filas = AGENTES.filter(a =>
+    q === '' || a.nombre.toLowerCase().includes(q) || a.legajo.includes(q) || a.area.toLowerCase().includes(q));
+
+  return `<div class="container">
+    <div>
+      <h1 class="h1">Legajos</h1>
+      <p class="sub" style="margin-top:.25rem">Ficha de cada agente del organismo. Es el lugar donde se van a ir sumando los apartados que definamos.</p>
+    </div>
+
+    <div class="filters">
+      <div class="searchbox grow" style="display:block;max-width:none">
+        ${svg('i-search',16,'style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted-fg)"')}
+        <input id="lg-q" class="input" type="text" value="${esc(store.legajos.q)}" placeholder="Buscar por nombre, legajo o área" aria-label="Buscar legajos">
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      ${filas.length ? `<table>
+        <thead><tr><th>Agente</th><th>Situación de revista</th><th>Ingreso</th><th>Antigüedad</th><th class="t-right">Acción</th></tr></thead>
+        <tbody>${filas.map(a => `<tr>
+          <td data-l="Agente">${celdaAgente(a.id)}</td>
+          <td data-l="Situación de revista" class="sub">${a.revista}<br><span class="xs">${a.cargo} · ${a.categoria}</span></td>
+          <td data-l="Ingreso" class="sub">${fechaCorta(a.ingreso)}</td>
+          <td data-l="Antigüedad" class="sub">${antiguedad(a.ingreso)}</td>
+          <td class="t-right"><a class="btn btn-outline btn-sm" href="#/rrhh/legajos/${a.id}">Abrir legajo ${svg('i-chevright',16)}</a></td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty">
+        <span class="circle">${svg('i-folderlock',20)}</span>
+        <p class="strong">Sin resultados</p>
+        <p class="sub">No se encontraron agentes con esa búsqueda.</p>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function vLegajo(id){
+  const a = agente(id);
+  if (!a) return vPendiente('Legajo no encontrado', 'Ese legajo no existe en el prototipo.',
+    'i-folderlock', {href:'#/rrhh/legajos', label:'Volver a Legajos'});
+
+  const tab = store.legajos.tab;
+  const TABS = [
+    ['datos','Datos y revista'],
+    ['licencias','Licencias y saldos'],
+    ['documentacion','Documentación'],
+    ['tramites','Trámites'],
+    ['pendientes','Apartados a definir'],
+  ];
+
+  let cuerpo = '';
+
+  if (tab === 'datos'){
+    cuerpo = `
+      <div class="aviso">${svg('i-fileclock',16)}
+        <span>Los valores son de ejemplo. Falta definir qué campos van en el legajo, cuáles se editan desde el Portal y cuáles llegan desde el sistema de personal de la Provincia.</span>
+      </div>
+      <div class="card card-pad" style="margin-top:1.5rem">
+        <h2 class="h2" style="margin-bottom:1.25rem">Datos personales</h2>
+        <div class="ficha">
+          ${dato('CUIL', a.cuil)}
+          ${dato('DNI', a.dni)}
+          ${dato('Fecha de nacimiento', fechaCorta(a.nacimiento))}
+          ${dato('Correo institucional', a.correo)}
+          ${dato('Teléfono', a.telefono)}
+          ${dato('Domicilio', a.domicilio)}
+        </div>
+      </div>
+      <div class="card card-pad" style="margin-top:1.5rem">
+        <h2 class="h2" style="margin-bottom:1.25rem">Situación de revista</h2>
+        <div class="ficha">
+          ${dato('N.º de legajo', a.legajo)}
+          ${dato('Situación', a.revista)}
+          ${dato('Cargo', a.cargo)}
+          ${dato('Categoría', a.categoria)}
+          ${dato('Agrupamiento', a.agrupamiento)}
+          ${dato('Régimen horario', a.regimen)}
+          ${dato('Área', a.area)}
+          ${dato('Fecha de ingreso', fechaCorta(a.ingreso))}
+          ${dato('Antigüedad', antiguedad(a.ingreso))}
+        </div>
+      </div>`;
+  }
+
+  if (tab === 'licencias'){
+    const pct = t => t.total ? Math.round(t.disp / t.total * 100) : 0;
+    const suyas = SOLICITUDES.filter(x => x.agente === a.id && x.desde);
+    cuerpo = `
+      <div class="cards-2">
+        ${DEF_SALDOS.map(def => {
+          const sd = a.saldos[def.key];
+          return `<div class="card saldo">
+            <div class="row"><span class="iconbox">${svg(def.icon)}</span><h3 class="strong">${def.label}</h3></div>
+            <div style="display:flex;align-items:baseline;gap:.375rem">
+              <span class="saldo-num">${sd.disp}</span><span class="sub">/ ${sd.total} días disponibles</span>
+            </div>
+            <div class="bar"><div style="width:${pct(sd)}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="wizard-nav end" style="margin-top:1.25rem">
+        <button class="btn btn-outline" data-ajustar="${a.id}">Ajustar saldo</button>
+      </div>
+      <section class="card" style="margin-top:1.5rem">
+        <div class="card-head"><h2 class="h2">Licencias con período asignado</h2><span class="count">${suyas.length}</span></div>
+        ${suyas.length ? `<ul class="list-div">${suyas.map(x => `
+          <li><div class="nov" style="cursor:default">
+            <span class="iconbox">${svg(x.tipo==='Imprevisto'?'i-zap':'i-palm')}</span>
+            <div class="nov-row">
+              <div class="nov-top"><p class="strong">${x.tipo}</p><span class="badge ${badgeClass(x.estado)}">${x.estado}</span></div>
+              <p class="sub">${x.numero} · ${x.dias} ${x.dias===1?'día':'días'} · ${fechaCorta(x.desde)} al ${fechaCorta(x.hasta)}</p>
+            </div>
+          </div></li>`).join('')}</ul>`
+        : `<div class="empty"><span class="circle">${svg('i-palm',20)}</span>
+             <p class="strong">Sin licencias asignadas</p></div>`}
+      </section>`;
+  }
+
+  if (tab === 'documentacion'){
+    const suyos = docsTodos().filter(dd => dd.agente === a.id);
+    cuerpo = `<div class="tbl-wrap">
+      ${suyos.length ? `<table>
+        <thead><tr><th>Documento</th><th>Trámite</th><th>Fecha</th><th>Estado</th></tr></thead>
+        <tbody>${suyos.map(dd => `<tr>
+          <td data-l="Documento"><p class="doc-name">${dd.nombre}</p><span class="origen">${dd.tipoDoc}</span></td>
+          <td data-l="Trámite" class="sub">${dd.tramite} · ${dd.tipoTramite}</td>
+          <td data-l="Fecha" class="sub">${dd.fecha?fechaCorta(dd.fecha):'—'}</td>
+          <td data-l="Estado"><span class="badge ${badgeDoc(dd.estado)}">${dd.estado}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty"><span class="circle">${svg('i-folder',20)}</span>
+        <p class="strong">Sin documentación</p>
+        <p class="sub">Este agente todavía no presentó documentación.</p></div>`}
+    </div>`;
+  }
+
+  if (tab === 'tramites'){
+    const suyos = SOLICITUDES.filter(x => x.agente === a.id);
+    cuerpo = `<div class="tbl-wrap">
+      ${suyos.length ? `<table>
+        <thead><tr><th>N.º</th><th>Tipo</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>${suyos.map(x => `<tr>
+          <td data-l="N.º" class="num">${x.numero}</td>
+          <td data-l="Tipo" class="sub">${x.tipo}${x.periodo?`<br><span class="xs">${x.periodo}</span>`:''}</td>
+          <td data-l="Estado"><span class="badge ${badgeClass(x.estado)}">${x.estado}</span>
+            ${x.motivo?`<p class="nota">${esc(x.motivo)}</p>`:''}</td>
+          <td data-l="Fecha" class="sub">${fechaCorta(x.fecha)}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty"><span class="circle">${svg('i-cal',20)}</span>
+        <p class="strong">Sin trámites</p></div>`}
+    </div>`;
+  }
+
+  if (tab === 'pendientes'){
+    cuerpo = `
+      <div class="aviso">${svg('i-fileclock',16)}
+        <span>Estos son los apartados que anticipamos para el legajo. Ninguno está definido todavía: sirven para ir acordando qué se guarda, quién lo carga y quién puede verlo.</span>
+      </div>
+      <div class="cards-2" style="margin-top:1.5rem">
+        ${MODULOS_LEGAJO.map(m => `<div class="modulo">
+          <div class="row" style="justify-content:space-between">
+            <h3>${m.titulo}</h3>
+            <span class="pill">A definir</span>
+          </div>
+          <p>${m.desc}</p>
+        </div>`).join('')}
+      </div>`;
+  }
+
+  return `<div class="container">
+    <a class="back" href="#/rrhh/legajos">${svg('i-arrowleft',16)} Volver a Legajos</a>
+
+    <div class="card card-pad">
+      <div class="cabecera">
+        <span class="avatar">${a.iniciales}</span>
+        <div style="flex:1;min-width:12rem">
+          <h1 class="h1">${a.nombre}</h1>
+          <p class="sub">Legajo ${a.legajo} · ${a.area}</p>
+        </div>
+        <div class="ficha" style="flex:2;min-width:14rem">
+          ${dato('Situación', a.revista)}
+          ${dato('Cargo', a.cargo + ' · ' + a.categoria)}
+          ${dato('Antigüedad', antiguedad(a.ingreso))}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tabs" role="tablist">
+        ${TABS.map(([k,l]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===tab}">${l}</button>`).join('')}
+      </div>
+      ${cuerpo}
+    </div>
+  </div>`;
+}
+
+/* ---------- router ---------- */
+const RUTAS = [
+  [/^#\/$/,                                    vInicio],
+  [/^#\/solicitudes$/,                         vSolicitudes],
+  [/^#\/solicitudes\/nuevo$/,                  vNuevoTramite],
+  [/^#\/solicitudes\/nuevo\/vacaciones$/,      vVacaciones],
+  [/^#\/solicitudes\/nuevo\/otros$/,           vOtros],
+  [/^#\/solicitudes\/nuevo\/imprevisto$/, () => vPendiente('Imprevisto',
+      'El formulario de solicitud de Imprevisto se diseñará en la próxima pantalla, pendiente de aprobación.',
+      'i-zap', {href:'#/solicitudes/nuevo', label:'Volver a Nuevo trámite'})],
+  [/^#\/solicitudes\/nuevo\/avisar-ausencia$/, () => vPendiente('Avisar una ausencia',
+      'El formulario para avisar una ausencia se diseñará en la próxima pantalla, pendiente de aprobación.',
+      'i-ambulance', {href:'#/solicitudes/nuevo', label:'Volver a Nuevo trámite'})],
+  [/^#\/solicitudes\/nuevo\/justificar-ausencia$/, vJustificar],
+  [/^#\/solicitudes\/nuevo\/otros\/estudio$/,  () => vPendiente('Solicitud de días de estudio',
+      'El formulario de este trámite se diseñará en la próxima etapa, pendiente de aprobación.',
+      'i-cap', {href:'#/solicitudes/nuevo/otros', label:'Volver a Otros trámites'})],
+  [/^#\/solicitudes\/nuevo\/otros\/mudanza$/,  () => vPendiente('Solicitud de días por mudanza',
+      'El formulario de este trámite se diseñará en la próxima etapa, pendiente de aprobación.',
+      'i-truck', {href:'#/solicitudes/nuevo/otros', label:'Volver a Otros trámites'})],
+  [/^#\/solicitudes\/(TR-\d+)$/, (m) => vPendiente(`Trámite ${m[1]}`,
+      'El detalle del trámite (historial de estados, documentos y firmas) se diseñará en la próxima pantalla, pendiente de aprobación.',
+      'i-filetext', {href:'#/solicitudes', label:'Volver a Mis solicitudes'})],
+  [/^#\/documentos$/,                          vDocumentos],
+  [/^#\/legajo$/, () => vPendiente('Legajo Digital',
+      'Próximamente. Este módulo estará disponible en una próxima etapa del proyecto.', 'i-folderlock')],
+  [/^#\/rrhh$/,                                vInicioRRHH],
+  [/^#\/rrhh\/validaciones$/,                  vValidaciones],
+  [/^#\/rrhh\/tramites$/,                      vTramitesRRHH],
+  [/^#\/rrhh\/legajos$/,                       vLegajos],
+  [/^#\/rrhh\/legajos\/(ag-\d+)$/,             (m) => vLegajo(m[1])],
+  [/^#\/rrhh\/almanaque$/,                     vAlmanaque],
+  [/^#\/rrhh\/parte$/,                         vParteDiario],
+  [/^#\/rrhh\/agentes$/,                       vAgentes],
+  [/^#\/rrhh\/novedades$/,                     vNovedadesRRHH],
+  [/^#\/director$/,                            vInicioDirector],
+  [/^#\/director\/aprobaciones$/,              vAprobaciones],
+  [/^#\/director\/almanaque$/,                 vAlmanaque],
+  [/^#\/director\/equipo$/,                    vEquipo],
+  [/^#\/perfil$/, () => vPendiente('Mi Perfil',
+      'Esta pantalla se diseñará a continuación, una vez aprobada la pantalla de Inicio. Aún no fue construida para respetar el flujo de aprobación pantalla por pantalla.')],
+];
+
+const $ = s => document.querySelector(s);
+const view = $('#view');
+
+/* La ruta vive en una variable, no en location.hash.
+   Dentro de un visor embebido (iframe) cualquier escritura en location se
+   interpreta como una salida del sitio y dispara el aviso de enlace externo,
+   así que ahí la ruta queda solo en memoria. Abierto como archivo suelto sí
+   sincronizamos el hash, para que funcionen atrás y adelante del navegador. */
+var EMBEBIDO = (function(){
+  try { return window.self !== window.top; } catch (e) { return true; }
+})();
+
+var ROUTE = '#/';
+
+function go(path){
+  ROUTE = path || '#/';
+  if (!EMBEBIDO){
+    try { if (location.hash !== ROUTE) location.hash = ROUTE; } catch (e) {}
+  }
+  render();
+}
+
+/* Cada rol solo entra a sus pantallas: si la ruta no le corresponde,
+   cae en el inicio de su portal. */
+function rolDeRuta(path){
+  if (path.indexOf('#/rrhh') === 0) return 'rrhh';
+  if (path.indexOf('#/director') === 0) return 'director';
+  if (path === '#/perfil') return store.rol;   // Mi Perfil existe en los tres
+  return 'agente';
+}
+
+function cambiarRol(rol){
+  if (!ROLES[rol]) return;
+  store.rol = rol;
+  cerrarRolPanel();
+  go(ROLES[rol].home);
+  toast('Estás viendo el Portal como ' + ROLES[rol].label + ': ' + ROLES[rol].persona + '.');
+}
+
+function pintarRol(){
+  const r = ROLES[store.rol];
+  $('#rol-ini').textContent = r.iniciales;
+  $('#rol-nom').textContent = r.persona;
+  $('#rol-lab').textContent = r.label;
+  $('#rol-panel').innerHTML =
+    '<div class="cab">Cambiar de perfil</div>' +
+    ORDEN_ROLES.map(k => {
+      const x = ROLES[k];
+      return `<button class="rol-op" data-rol="${k}" aria-current="${k===store.rol}">
+        <span class="avatar sm">${x.iniciales}</span>
+        <span class="cuerpo"><span class="n">${x.label} · ${x.persona}</span><span class="d">${x.detalle}</span></span>
+        ${k===store.rol ? svg('i-check',16,'style="color:var(--ok-text)"') : ''}
+      </button>`;
+    }).join('');
+  document.querySelectorAll('#rol-panel [data-rol]').forEach(b =>
+    b.addEventListener('click', () => cambiarRol(b.getAttribute('data-rol'))));
+}
+
+function render(){
+  let path = ROUTE || '#/';
+  if (rolDeRuta(path) !== store.rol) path = ROUTE = ROLES[store.rol].home;
+  let html = null;
+  for (const [re, fn] of RUTAS){
+    const m = path.match(re);
+    if (m){ html = fn(m); break; }
+  }
+  if (html === null) html = vPendiente('Página no encontrada',
+    'El enlace al que intentás acceder no existe en este prototipo.', 'i-search',
+    {href:'#/', label:'Volver al Inicio'});
+
+  view.innerHTML = html;
+  $('#modal-root').innerHTML = modalHTML();
+  view.scrollTop = 0;
+  pintarRol();
+  $('#sidebar').innerHTML = sidebarHTML(path);
+  $('#drawer').innerHTML = `<button class="icon-btn drawer-close" id="btn-close" aria-label="Cerrar menú">${svg('i-x',18)}</button>` + sidebarHTML(path, true);
+  document.body.classList.remove('nav-open');
+  bind(path);
+}
+
+/* ---------- avisos breves ---------- */
+let toastTimer = null;
+function toast(msg){
+  let el = $('#toast');
+  if (!el){
+    el = document.createElement('div');
+    el.id = 'toast'; el.className = 'toast'; el.setAttribute('role','status');
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.dataset.open = 'true';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.dataset.open = 'false'; }, 2800);
+}
+
+/* ---------- listeners de Documentos ---------- */
+function bindDocumentos(){
+  const q = $('#d-q');
+  if (!q) return;
+  const f = store.docs;
+  const refrescar = () => { $('#d-tabla').innerHTML = listaDocumentos(); bindDocumentos(); };
+
+  q.addEventListener('input', e => { f.q = e.target.value; refrescar(); });
+  const st = $('#d-estado'), tp = $('#d-tipo');
+  if (st) st.addEventListener('change', e => { f.estado = e.target.value; refrescar(); });
+  if (tp) tp.addEventListener('change', e => { f.tipo = e.target.value; refrescar(); });
+
+  document.querySelectorAll('[data-ver]').forEach(b =>
+    b.addEventListener('click', () => toast('En el prototipo la vista previa del documento está simulada.')));
+  document.querySelectorAll('[data-bajar]').forEach(b =>
+    b.addEventListener('click', () => toast('En el prototipo la descarga está simulada.')));
+}
+
+/* ---------- listeners de Justificar una ausencia ---------- */
+function bindJustificar(){
+  const j = store.just;
+  const cuerpo = $('#j-cuerpo');
+  if (!cuerpo) return;
+
+  document.querySelectorAll('input[name="ausencia"]').forEach(r =>
+    r.addEventListener('change', e => { j.ausencia = e.target.value; render(); }));
+
+  const cont = $('#j-cont');
+  if (cont) cont.addEventListener('click', () => { j.paso = 'doc'; render(); });
+
+  const tipo = $('#j-tipo');
+  if (tipo) tipo.addEventListener('change', e => {
+    j.tipoDoc = e.target.value;
+    $('#j-enviar').disabled = !(j.tipoDoc && j.archivo);
+  });
+
+  const dz = $('#j-dz'), file = $('#j-file');
+  if (dz) dz.addEventListener('click', () => file.click());
+  if (file) file.addEventListener('change', e => {
+    const a = e.target.files && e.target.files[0];
+    if (a){ j.archivo = a.name; render(); }
+  });
+  const quitar = $('#j-quitar');
+  if (quitar) quitar.addEventListener('click', () => { j.archivo = null; render(); });
+
+  const com = $('#j-com');
+  if (com) com.addEventListener('input', e => { j.comentario = e.target.value; });
+
+  const volver = $('#j-volver');
+  if (volver) volver.addEventListener('click', () => { j.paso = 'ausencia'; render(); });
+
+  const enviar = $('#j-enviar');
+  if (enviar) enviar.addEventListener('click', () => {
+    const a = AUSENCIAS.filter(x => x.id === j.ausencia)[0];
+    const pl = a ? plazo(a.fecha) : null;
+    /* El certificado presentado pasa a figurar en Documentos y el pendiente se resuelve. */
+    store.subidos.unshift({
+      id:'D-' + (119 + store.subidos.length),
+      nombre:j.archivo,
+      tipoDoc:j.tipoDoc,
+      tramite:a ? a.tramite : '—',
+      tipoTramite:'Justificación de ausencia',
+      fecha:hoyISO(),
+      estado:'En validación',
+      origen:'agente',
+      ausencia:j.ausencia,
+      nota: pl && pl.vencido ? 'Presentado fuera del plazo de ' + PLAZO_HS + ' h. Lo evalúa RRHH.' : null,
+    });
+    DOCUMENTOS.forEach(dd => { if (dd.ausencia === j.ausencia) dd.oculto = true; });
+    j.paso = 'listo';
+    render();
+  });
+}
+
+/* ---------- Novedades hacia el agente ---------- */
+function avisar(nov){ NOVEDADES.unshift(Object.assign({ time:'Recién', href:'#/' }, nov)); }
+
+/* ---------- listeners de RRHH y Director ---------- */
+function abrirModal(m){ store.modal = m; render(); }
+function cerrarModal(){ store.modal = null; render(); }
+
+function bindModal(){
+  const m = store.modal;
+  if (!m) return;
+
+  document.querySelectorAll('[data-cerrar-modal]').forEach(b => b.addEventListener('click', cerrarModal));
+  const back = $('#modal-back');
+  if (back) back.addEventListener('click', e => { if (e.target === back) cerrarModal(); });
+
+  const mot = $('#m-motivo');
+  if (mot) mot.addEventListener('input', e => {
+    m.motivo = e.target.value;
+    /* En el envío del parte la nota es opcional. */
+    if (m.kind !== 'enviar-parte') $('#m-confirmar').disabled = !m.motivo.trim();
+  });
+
+  const mq = $('#m-q');
+  if (mq) mq.addEventListener('input', e => {
+    m.q = e.target.value;
+    $('#modal-root').innerHTML = modalHTML();
+    bindModal();
+    const f = $('#m-q'); if (f){ f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+  });
+  const marea = $('#m-area');
+  if (marea) marea.addEventListener('change', e => { m.area = e.target.value; render(); });
+  const irParte = $('#m-ir-parte');
+  if (irParte) irParte.addEventListener('click', () => {
+    store.parte.dia = m.iso;
+    store.modal = null;
+    go('#/rrhh/parte');
+  });
+
+  const lao = $('#m-lao'), imp = $('#m-imp');
+  if (lao) lao.addEventListener('input', e => { m.lao = e.target.value; });
+  if (imp) imp.addEventListener('input', e => { m.imp = e.target.value; });
+
+  const ok = $('#m-confirmar');
+  if (ok) ok.addEventListener('click', () => {
+    if (m.kind === 'rechazar-doc'){
+      const dd = docsTodos().filter(x => x.id === m.id)[0];
+      if (dd){
+        dd.estado = 'Rechazado';
+        dd.nota = 'RRHH rechazó el archivo: ' + m.motivo.trim();
+        if (dd.agente === YO) avisar({ icon:'i-xcircle', tone:'danger', title:'Documentación rechazada',
+          detail:'RRHH rechazó ' + dd.nombre + ': ' + m.motivo.trim(), href:'#/documentos' });
+      }
+      cerrarModal(); toast('Documentación rechazada. El agente ya puede verlo.');
+      return;
+    }
+    if (m.kind === 'rechazar-sol'){
+      const x = SOLICITUDES.filter(y => y.numero === m.id)[0];
+      if (x){
+        x.estado = 'Rechazada';
+        x.motivo = m.motivo.trim();
+        if (x.agente === YO) avisar({ icon:'i-xcircle', tone:'danger', title:'Solicitud rechazada',
+          detail:'Tu solicitud de ' + x.tipo + ' #' + x.numero + ' fue rechazada por tu Director: ' + x.motivo,
+          href:'#/solicitudes' });
+      }
+      cerrarModal(); toast('Solicitud rechazada.');
+      return;
+    }
+    if (m.kind === 'enviar-parte'){
+      const ahora = new Date();
+      store.partes[m.iso] = {
+        fecha: String(ahora.getDate()).padStart(2,'0') + '/' + String(ahora.getMonth()+1).padStart(2,'0'),
+        hora: String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0'),
+        destinatarios: destinatariosParte().length,
+        nota: m.motivo.trim(),
+      };
+      cerrarModal();
+      toast('Parte enviado a ' + AREA_PARTE + '.');
+      return;
+    }
+    if (m.kind === 'ajustar-saldo'){
+      const a = agente(m.id);
+      const nLao = Math.max(0, Math.min(a.saldos.lao.total, parseInt(m.lao,10) || 0));
+      const nImp = Math.max(0, Math.min(a.saldos.imp.total, parseInt(m.imp,10) || 0));
+      a.saldos.lao.disp = nLao;
+      a.saldos.imp.disp = nImp;
+      if (a.id === YO) avisar({ icon:'i-filetext', tone:'info', title:'Se actualizó tu saldo de licencia',
+        detail:'RRHH ajustó tus saldos: ' + nLao + ' días de Licencia Anual Ordinaria y ' + nImp +
+               ' de Imprevistos. Motivo: ' + m.motivo.trim(), href:'#/' });
+      cerrarModal(); toast('Saldo actualizado para ' + a.nombre + '.');
+      return;
+    }
+  });
+}
+
+function bindRRHH(){
+  /* Validaciones */
+  document.querySelectorAll('[data-validar]').forEach(b => b.addEventListener('click', () => {
+    const dd = docsTodos().filter(x => x.id === b.getAttribute('data-validar'))[0];
+    if (!dd) return;
+    dd.estado = 'Validado';
+    dd.nota = null;
+    if (dd.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Documentación validada',
+      detail:'RRHH validó ' + dd.nombre + '. Tu ausencia quedó justificada.', href:'#/documentos' });
+    render();
+    toast('Documentación validada.');
+  }));
+
+  document.querySelectorAll('[data-rechazar-doc]').forEach(b => b.addEventListener('click', () => {
+    const dd = docsTodos().filter(x => x.id === b.getAttribute('data-rechazar-doc'))[0];
+    if (dd) abrirModal({ kind:'rechazar-doc', id:dd.id, motivo:'',
+      sub: nombreAgente(dd.agente) + ' · ' + dd.nombre });
+  }));
+
+  /* Trámites: filtros y registro */
+  const q = $('#r-q');
+  if (q) q.addEventListener('input', e => { store.rrhh.q = e.target.value; render(); });
+  const est = $('#r-estado');
+  if (est) est.addEventListener('change', e => { store.rrhh.estado = e.target.value; render(); });
+
+  document.querySelectorAll('[data-registrar]').forEach(b => b.addEventListener('click', () => {
+    const x = SOLICITUDES.filter(y => y.numero === b.getAttribute('data-registrar'))[0];
+    if (!x) return;
+    x.estado = 'Registrada';
+    /* Al registrarse, la licencia descuenta del saldo del agente. */
+    const a = agente(x.agente);
+    if (a && x.dias){
+      const sd = x.tipo === 'Imprevisto' ? a.saldos.imp : a.saldos.lao;
+      sd.disp = Math.max(0, sd.disp - x.dias);
+    }
+    if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Licencia registrada',
+      detail:'RRHH registró tu ' + x.tipo + ' #' + x.numero + '. Ya está descontada de tu saldo.',
+      href:'#/solicitudes' });
+    render();
+    toast('Trámite ' + x.numero + ' registrado.');
+  }));
+
+  /* Agentes: ajuste de saldo */
+  document.querySelectorAll('[data-ajustar]').forEach(b => b.addEventListener('click', () => {
+    const a = agente(b.getAttribute('data-ajustar'));
+    if (a) abrirModal({ kind:'ajustar-saldo', id:a.id, lao:a.saldos.lao.disp, imp:a.saldos.imp.disp, motivo:'' });
+  }));
+
+  /* Publicación de novedades */
+  const pt = $('#p-titulo');
+  if (pt){
+    const n = store.pub;
+    const revisar = () => { $('#p-publicar').disabled = !(n.titulo.trim() && n.detalle.trim()); };
+    pt.addEventListener('input', e => { n.titulo = e.target.value; revisar(); });
+    $('#p-detalle').addEventListener('input', e => { n.detalle = e.target.value; revisar(); });
+    $('#p-tono').addEventListener('change', e => { n.tono = e.target.value; });
+    $('#p-dest').addEventListener('change', e => { n.dest = e.target.value; });
+    $('#p-link').addEventListener('input', e => { n.link = e.target.value; });
+
+    $('#p-publicar').addEventListener('click', () => {
+      const externo = n.link.trim() !== '';
+      avisar({
+        icon: n.tono === 'warning' ? 'i-fileclock' : n.tono === 'success' ? 'i-check' : 'i-filetext',
+        tone: n.tono,
+        title: n.titulo.trim(),
+        detail: n.detalle.trim(),
+        href: externo ? n.link.trim() : '#/',
+        externo: externo,
+        propia: true,
+      });
+      Object.assign(n, { titulo:'', detalle:'', link:'' });
+      render();
+      toast('Novedad publicada. Cambiá al perfil Agente para verla.');
+    });
+
+    document.querySelectorAll('[data-borrar]').forEach(b => b.addEventListener('click', () => {
+      NOVEDADES.splice(parseInt(b.getAttribute('data-borrar'),10), 1);
+      render();
+      toast('Novedad quitada.');
+    }));
+  }
+}
+
+function bindDirector(){
+  document.querySelectorAll('[data-aprobar]').forEach(b => b.addEventListener('click', () => {
+    const x = SOLICITUDES.filter(y => y.numero === b.getAttribute('data-aprobar'))[0];
+    if (!x) return;
+    x.estado = 'Aprobada';
+    if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Solicitud aprobada',
+      detail:'Tu solicitud de ' + x.tipo + ' #' + x.numero + ' fue aprobada por tu Director. Pasa a RRHH para su registro.',
+      href:'#/solicitudes' });
+    render();
+    toast('Solicitud aprobada. Pasa a RRHH para registrarla.');
+  }));
+
+  document.querySelectorAll('[data-rechazar-sol]').forEach(b => b.addEventListener('click', () => {
+    const x = SOLICITUDES.filter(y => y.numero === b.getAttribute('data-rechazar-sol'))[0];
+    if (x) abrirModal({ kind:'rechazar-sol', id:x.numero, motivo:'',
+      sub: nombreAgente(x.agente) + ' · ' + x.tipo + ' #' + x.numero });
+  }));
+}
+
+/* ---------- listeners de Legajos ---------- */
+function bindLegajos(){
+  const q = $('#lg-q');
+  if (q) q.addEventListener('input', e => { store.legajos.q = e.target.value; render(); });
+
+  document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+    store.legajos.tab = b.getAttribute('data-tab');
+    render();
+  }));
+}
+
+/* ---------- listeners del almanaque y del parte diario ---------- */
+function bindAusencias(){
+  const c = store.cal;
+
+  const prev = $('#c-prev');
+  if (prev) prev.addEventListener('click', () => {
+    c.mes--; if (c.mes < 0){ c.mes = 11; c.anio--; } c.dia = null; render();
+  });
+  const next = $('#c-next');
+  if (next) next.addEventListener('click', () => {
+    c.mes++; if (c.mes > 11){ c.mes = 0; c.anio++; } c.dia = null; render();
+  });
+  const hoyBtn = $('#c-hoy');
+  if (hoyBtn) hoyBtn.addEventListener('click', () => {
+    const n = new Date();
+    c.anio = n.getFullYear(); c.mes = n.getMonth(); c.dia = hoyISO(); render();
+  });
+  const areaCal = $('#c-area');
+  if (areaCal) areaCal.addEventListener('change', e => { c.area = e.target.value; render(); });
+
+  document.querySelectorAll('[data-dia]').forEach(b => b.addEventListener('click', () => {
+    const iso = b.getAttribute('data-dia');
+    c.dia = iso;
+    /* Si tocás un día del mes anterior o del siguiente, el almanaque acompaña. */
+    const d = new Date(iso+'T00:00:00');
+    c.anio = d.getFullYear(); c.mes = d.getMonth();
+    /* Y se abre ampliado: en un organismo grande la celda no alcanza. */
+    abrirModal({ kind:'dia', iso:iso, q:'', area:(store.rol === 'rrhh' ? c.area : areaDelDirector()) });
+  }));
+
+  const pd = $('#pd-dia');
+  if (pd) pd.addEventListener('change', e => { store.parte.dia = e.target.value || hoyISO(); render(); });
+  const pa = $('#pd-area');
+  if (pa) pa.addEventListener('change', e => { store.parte.area = e.target.value; render(); });
+  const bajar = $('#pd-bajar');
+  if (bajar) bajar.addEventListener('click', () =>
+    toast('En el prototipo la descarga del parte está simulada.'));
+  const enviar = $('#pd-enviar');
+  if (enviar) enviar.addEventListener('click', () =>
+    abrirModal({ kind:'enviar-parte', iso:(store.parte.dia || hoyISO()), motivo:'' }));
+}
+
+/* ---------- listeners por vista ---------- */
+function bind(path){
+  // filtros de Mis solicitudes
+  const q = $('#f-q');
+  if (q){
+    q.addEventListener('input', e => {
+      store.filtros.q = e.target.value;
+      $('#tabla').innerHTML = tablaSolicitudes();
+    });
+    $('#f-estado').addEventListener('change', e => {
+      store.filtros.estado = e.target.value;
+      $('#tabla').innerHTML = tablaSolicitudes();
+    });
+    $('#f-tipo').addEventListener('change', e => {
+      store.filtros.tipo = e.target.value;
+      $('#tabla').innerHTML = tablaSolicitudes();
+    });
+  }
+
+  // wizard de licencia
+  const v = store.vac;
+  const repaso = () => { $('#v-cuerpo').innerHTML =
+      v.paso === 'datos' ? pasoVacDatos() : v.paso === 'firma' ? pasoVacFirma() : pasoVacListo();
+    bind(path); };
+
+  const revalidar = () => {
+    const dias = contarDias(v.desde, v.hasta);
+    const excede = dias > saldoLAO().disp;
+    const av = $('#v-aviso');
+    if (av) av.innerHTML = dias > 0
+      ? `<div class="alert ${excede?'bad':''}" style="margin-top:1rem">${excede
+          ? `Estás solicitando ${dias} días y solo tenés ${saldoLAO().disp} disponibles.`
+          : `Estás solicitando ${dias} ${dias===1?'día':'días'} de licencia.`}</div>`
+      : '';
+    const btn = $('#v-cont');
+    if (btn) btn.disabled = !(v.desde && v.hasta && dias > 0 && !excede);
+  };
+
+  const d1 = $('#v-desde'), d2 = $('#v-hasta'), com = $('#v-com');
+  if (d1) d1.addEventListener('change', e => { v.desde = e.target.value; if (d2) d2.min = v.desde; revalidar(); });
+  if (d2) d2.addEventListener('change', e => { v.hasta = e.target.value; revalidar(); });
+  if (com) com.addEventListener('input', e => { v.comentario = e.target.value; });
+  const cont = $('#v-cont');
+  if (cont) cont.addEventListener('click', () => { v.paso = 'firma'; render(); });
+
+  const dz = $('#v-dz'), file = $('#v-file');
+  if (dz) dz.addEventListener('click', () => file.click());
+  if (file) file.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f){ v.firma = f.name; repaso(); }
+  });
+  const quitar = $('#v-quitar');
+  if (quitar) quitar.addEventListener('click', () => { v.firma = null; repaso(); });
+  const decl = $('#v-decl');
+  if (decl) decl.addEventListener('change', e => {
+    v.decl = e.target.checked;
+    $('#v-firmar').disabled = !(v.firma && v.decl);
+  });
+  const volver = $('#v-volver');
+  if (volver) volver.addEventListener('click', () => { v.paso = 'datos'; render(); });
+  const firmar = $('#v-firmar');
+  if (firmar) firmar.addEventListener('click', () => { v.paso = 'listo'; render(); });
+
+  // los formularios vuelven al paso 1 si se sale de la pantalla
+  if (!/vacaciones/.test(path) && v.paso === 'listo') Object.assign(v,
+    { paso:'datos', desde:'', hasta:'', comentario:'', firma:null, decl:false });
+  if (!/justificar-ausencia/.test(path) && store.just.paso === 'listo') Object.assign(store.just,
+    { paso:'ausencia', ausencia:'', tipoDoc:'', archivo:null, comentario:'' });
+
+  bindDocumentos();
+  bindJustificar();
+  bindRRHH();
+  bindDirector();
+  bindAusencias();
+  bindLegajos();
+  bindModal();
+
+  const cerrar = $('#btn-close');
+  if (cerrar) cerrar.addEventListener('click', () => document.body.classList.remove('nav-open'));
+}
+
+/* ---------- shell: drawer + notificaciones ---------- */
+$('#btn-menu').addEventListener('click', () => document.body.classList.add('nav-open'));
+$('#overlay').addEventListener('click', () => document.body.classList.remove('nav-open'));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    document.body.classList.remove('nav-open');
+    cerrarNotif();
+    cerrarRolPanel();
+  }
+});
+
+const panel = $('#notif-panel'), btnNotif = $('#btn-notif');
+panel.innerHTML = `
+  <header>
+    <h2 class="h2" style="font-size:.875rem">Notificaciones</h2>
+    <span class="count">${NOVEDADES.length} nuevas</span>
+  </header>
+  <ul>${NOVEDADES.map(n => `<li>
+      <span class="iconbox tone-${n.tone}" style="height:2rem;width:2rem">${svg(n.icon,16)}</span>
+      <div class="nov-row">
+        <div class="nov-top">
+          <p class="strong">${n.title} ${n.externo?svg('i-external',12,'style="display:inline-block;vertical-align:-1px;color:var(--muted-fg)"'):''}</p>
+          <span class="nov-time">${n.time}</span>
+        </div>
+        <p class="xs" style="line-height:1.5">${n.detail}</p>
+      </div>
+    </li>`).join('')}</ul>
+  <footer><a class="link" href="#/">Ver todas las novedades ${svg('i-arrowright',14)}</a></footer>`;
+
+const rolPanel = $('#rol-panel'), btnRol = $('#btn-rol');
+function cerrarRolPanel(){ rolPanel.dataset.open = 'false'; btnRol.setAttribute('aria-expanded','false'); }
+btnRol.addEventListener('click', e => {
+  e.stopPropagation();
+  const abierto = rolPanel.dataset.open === 'true';
+  rolPanel.dataset.open = String(!abierto);
+  btnRol.setAttribute('aria-expanded', String(!abierto));
+});
+document.addEventListener('click', e => { if (!rolPanel.contains(e.target) && e.target !== btnRol) cerrarRolPanel(); });
+
+function cerrarNotif(){ panel.dataset.open = 'false'; btnNotif.setAttribute('aria-expanded','false'); }
+btnNotif.addEventListener('click', e => {
+  e.stopPropagation();
+  const abierto = panel.dataset.open === 'true';
+  panel.dataset.open = String(!abierto);
+  btnNotif.setAttribute('aria-expanded', String(!abierto));
+});
+document.addEventListener('click', e => { if (!panel.contains(e.target)) cerrarNotif(); });
+panel.addEventListener('click', e => { if (e.target.closest('a')) cerrarNotif(); });
+
+/* Navegación: interceptamos los links internos en lugar de depender del hash. */
+document.addEventListener('click', function(e){
+  const t = e.target;
+  const a = t && t.closest ? t.closest('a[href^="#"]') : null;
+  if (!a) return;
+  const href = a.getAttribute('href');
+  if (!href || href === '#') return;
+  /* Captura: cancelamos la navegación antes que cualquier otro manejador.
+     No cortamos la propagación para que sigan funcionando los listeners
+     que cada enlace tiene por su cuenta. */
+  e.preventDefault();
+  cerrarNotif();
+  cerrarRolPanel();
+  /* Si el enlace viene de un pendiente de Documentos, la ausencia queda
+     elegida y el formulario arranca directo en el paso 2. */
+  const au = a.getAttribute('data-ausencia');
+  if (au){ store.just.ausencia = au; store.just.paso = 'doc'; }
+  go(href);
+}, true);
+
+/* Botón atrás/adelante del navegador, cuando el hash sí está disponible. */
+window.addEventListener('hashchange', function(){
+  if (location.hash && location.hash !== ROUTE){ ROUTE = location.hash; render(); }
+});
+
+/* Arranque. Si algo falla, mostramos el motivo en pantalla en vez de quedar en blanco. */
+try {
+  ROUTE = (!EMBEBIDO && location.hash) ? location.hash : '#/';
+} catch (e) { ROUTE = '#/'; }
+
+try {
+  render();
+} catch (err) {
+  view.innerHTML = '<div class="container"><h1 class="h1">No se pudo iniciar el prototipo</h1>'
+    + '<div class="pending"><p>' + esc(err && err.message ? err.message : String(err)) + '</p></div></div>';
+}
+</script>
+</body>
+</html>
