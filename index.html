@@ -484,6 +484,17 @@ a.kpi:hover{border-color:rgb(57 38 120 / .35);box-shadow:var(--shadow-md)}
 .dest{display:flex;align-items:center;gap:.625rem;padding:.5rem 0}
 .dest .der{margin-left:auto;font-size:.75rem;color:var(--muted-fg)}
 
+/* ---------- Firma electrónica ---------- */
+.firma-decl{margin-top:1rem;padding:.875rem 1rem;border-radius:var(--r-lg);background:var(--muted);font-size:.8125rem;line-height:1.6;color:var(--secondary-fg)}
+.btn-firmar{width:100%;height:3rem;margin-top:.75rem;font-size:.9375rem}
+.constancia-firma{display:flex;gap:.75rem;align-items:flex-start;margin-top:1rem;padding:1rem;border-radius:var(--r-lg);background:rgb(127 174 36 / .14);border:1px solid rgb(127 174 36 / .4)}
+.constancia-firma .ico{display:flex;align-items:center;justify-content:center;height:2.25rem;width:2.25rem;border-radius:var(--r-full);background:var(--ok);color:#fff;flex:none}
+.constancia-firma .cuerpo{flex:1;min-width:0}
+.constancia-firma .tit{font-weight:600;color:var(--ok-text)}
+.constancia-firma .det{font-size:.75rem;color:var(--secondary-fg);margin-top:.1875rem;line-height:1.5}
+.codigo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.75rem;letter-spacing:.03em;background:var(--card);border:1px solid var(--border);border-radius:.25rem;padding:.0625rem .375rem}
+.deshacer{align-self:flex-start;flex:none}
+
 /* ---------- Toast ---------- */
 .toast{
   position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,1rem);z-index:70;
@@ -545,6 +556,7 @@ a.kpi:hover{border-color:rgb(57 38 120 / .35);box-shadow:var(--shadow-md)}
   <circle cx="50" cy="50" r="15" fill="#343436"/>
 </g>
 <g id="i-external"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></g>
+<g id="i-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></g>
 <g id="i-menu"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></g>
 </defs></svg>
 
@@ -665,7 +677,14 @@ const AGENTES = [
     correo:'cdominguez@santafe.gov.ar', telefono:'341 155-6674', domicilio:'Rosario, Santa Fe' },
 ];
 function agente(id){ return AGENTES.filter(a => a.id === id)[0]; }
-const AREAS = ['Atención a la Ciudadanía','Mesa de Entradas'];
+const AREAS = [
+  'Atención a la Ciudadanía',
+  'Mesa de Entradas',
+  'Estrategia y Gestión',
+  'Prensa',
+  'C.A.V',
+  'Descentralización Territorial',
+];
 /* El Director solo ve su área; RRHH ve todo el organismo. */
 function areaDelDirector(){ return ROLES.director.area; }
 function equipoDirector(){ return AGENTES.filter(a => a.area === areaDelDirector()); }
@@ -712,6 +731,8 @@ const DEF_SALDOS = [
 const URL_RECIBOS = 'https://sso.santafe.gov.ar/service-auth/login?service=https%3A%2F%2Fwww.santafe.gob.ar%2Fportalciudadano%2F';
 
 const NOVEDADES = [
+  { icon:'i-heart',     tone:'success', title:'Jornada de controles gratuitos en el marco del Día Mundial de la Diabetes', href:'#/',
+    detail:'Hoy 13/11 de 10 a 15 horas, la Defensoría del Pueblo de la provincia de Santa Fe llevará a cabo una jornada por el Día Mundial de la Diabetes en la Plaza Pringles de Rosario, organizada en conjunto con el Colegio de Médicos de la Segunda Circunscripción, la Sociedad de Endocrinología, Metabolismo y Nutrición de Rosario y el Rotary Club Rosario Sud.', time:'Hace 20 min' },
   { icon:'i-filetext',  tone:'info',    title:'Recibos de sueldo disponibles',   href:URL_RECIBOS, externo:true,
     detail:'Ya está publicado tu recibo de julio 2026. Se descarga desde el Portal Ciudadano, ingresando con tu usuario de la Provincia.', time:'Hace 1 h' },
   { icon:'i-check',     tone:'success', title:'Solicitud aprobada',               href:'#/solicitudes',
@@ -887,6 +908,69 @@ function contarDias(desde, hasta){
   return Math.floor((h-d)/86400000) + 1;
 }
 
+/* ---------- Firma electrónica ----------
+   No se sube ningún archivo: la identidad ya quedó validada al ingresar al
+   Portal, así que el acto de firmar es apretar el botón de conformidad.
+   Queda sellado con firmante, rol, fecha, hora y código de verificación. */
+function firmanteActual(){
+  const r = ROLES[store.rol];
+  if (store.rol === 'agente'){
+    const a = agente(YO);
+    return { nombre:a.nombre, rol:'Agente · ' + a.area, legajo:a.legajo };
+  }
+  return { nombre:r.persona, rol:r.label + ' · ' + r.detalle, legajo:'—' };
+}
+
+function codigoFirma(){
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for (let i = 0; i < 8; i++) c += abc[Math.floor(Math.random() * abc.length)];
+  return 'FEA-' + new Date().getFullYear() + '-' + c;
+}
+
+function sellarFirma(){
+  const n = new Date(), f = firmanteActual();
+  return {
+    codigo: codigoFirma(),
+    firmante: f.nombre,
+    rol: f.rol,
+    fecha: String(n.getDate()).padStart(2,'0') + '/' + String(n.getMonth()+1).padStart(2,'0') + '/' + n.getFullYear(),
+    hora: String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0'),
+  };
+}
+
+/* Datos del firmante, en la grilla de siempre. */
+function metaFirmante(){
+  const f = firmanteActual(), n = new Date();
+  return `<div class="meta" style="margin-top:1rem">
+    <div><p class="xs">Firmante</p><p class="strong">${f.nombre}</p></div>
+    <div><p class="xs">Rol</p><p class="strong">${f.rol}</p></div>
+    <div><p class="xs">Fecha</p><p class="strong">${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}</p></div>
+    <div><p class="xs">Hora</p><p class="strong">${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}</p></div>
+  </div>`;
+}
+
+/* Constancia de lo ya firmado. */
+function constanciaFirma(fi, idDeshacer){
+  return `<div class="constancia-firma">
+    <span class="ico">${svg('i-check',18)}</span>
+    <div class="cuerpo">
+      <p class="tit">Firmado electrónicamente</p>
+      <p class="det">${fi.firmante} · ${fi.rol}<br>
+        ${fi.fecha} a las ${fi.hora} h · Código <span class="codigo">${fi.codigo}</span></p>
+    </div>
+    ${idDeshacer ? `<button class="btn btn-ghost btn-sm deshacer" id="${idDeshacer}">Deshacer</button>` : ''}
+  </div>`;
+}
+
+/* Declaración + botón de conformidad: el acto de firmar. */
+function bloqueFirmar(declaracion, idBoton, etiqueta){
+  return `<p class="firma-decl">${declaracion}</p>
+    <button class="btn btn-primary btn-firmar" id="${idBoton}">
+      ${svg('i-shield',18)} ${etiqueta || 'Acepto firmar electrónicamente'}
+    </button>`;
+}
+
 /* ---------- estado de UI ---------- */
 const store = {
   rol: 'agente',
@@ -902,7 +986,7 @@ const store = {
   modal: null,
   just: { paso:'ausencia', ausencia:'', tipoDoc:'', archivo:null, comentario:'' },
   subidos: [],
-  vac: { paso:'datos', desde:'', hasta:'', comentario:'', firma:null, decl:false },
+  vac: { paso:'datos', desde:'', hasta:'', comentario:'', firma:null },
 };
 function saldoLAO(){ return agente(YO).saldos.lao; }
 
@@ -1179,50 +1263,27 @@ function pasoVacFirma(){
         ${svg('i-shield',20,'style="color:var(--primary)"')}
         <h2 style="font-size:.875rem;font-weight:600">Firma electrónica</h2>
       </div>
-      <p class="sub" style="margin-top:.25rem">Adjuntá tu firma certificada para validar la solicitud. Se registrará tu identidad, fecha y hora.</p>
+      <p class="sub" style="margin-top:.25rem">No hace falta adjuntar ningún archivo: tu identidad ya quedó validada al ingresar al Portal. Se registran tu nombre, tu rol, la fecha y la hora.</p>
 
-      <div style="margin-top:1rem">
-        ${v.firma
-          ? `<div class="file">
-               <div class="row">
-                 <span class="iconbox" style="height:2.25rem;width:2.25rem">${svg('i-filetext',16)}</span>
-                 <div style="min-width:0">
-                   <p class="strong" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.firma)}</p>
-                   <p class="xs" style="color:var(--ok-text)">Firma certificada adjuntada</p>
-                 </div>
-               </div>
-               <button class="icon-btn" id="v-quitar" aria-label="Quitar firma" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
-             </div>`
-          : `<button class="dz" id="v-dz">
-               ${svg('i-upload',24,'style="color:var(--muted-fg)"')}
-               <span class="strong">Adjuntar firma certificada</span>
-               <span class="xs">Archivo .p7s, .pdf firmado o imagen de firma (máx. 5 MB)</span>
-             </button>`}
-        <input type="file" id="v-file" accept=".p7s,.pdf,image/*" class="sr">
-      </div>
+      ${metaFirmante()}
 
-      <div class="meta" style="margin-top:1rem">
-        <div><p class="xs">Firmante</p><p class="strong">${AGENTE.nombre} ${AGENTE.apellido}</p></div>
-        <div><p class="xs">Rol</p><p class="strong">Agente · ${AGENTE.area}</p></div>
-        <div><p class="xs">Fecha</p><p class="strong">${f}</p></div>
-        <div><p class="xs">Hora</p><p class="strong">${hh}</p></div>
-      </div>
-
-      <label class="check" style="margin-top:1rem">
-        <input type="checkbox" id="v-decl" ${v.decl?'checked':''}>
-        <span class="sub" style="line-height:1.6">Declaro que los datos consignados son correctos y firmo electrónicamente esta solicitud de Licencia Anual Ordinaria.</span>
-      </label>
+      ${v.firma
+        ? constanciaFirma(v.firma, 'v-desfirmar')
+        : bloqueFirmar(
+            'Declaro que los datos consignados son correctos y presto conformidad para firmar electrónicamente esta solicitud de Licencia Anual Ordinaria.',
+            'v-firmar-ok')}
     </div>
 
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="v-volver">${svg('i-arrowleft',16)} Volver</button>
-      <button class="btn btn-primary" id="v-firmar" ${(v.firma && v.decl)?'':'disabled'}>Firmar y enviar ${svg('i-shield',16)}</button>
+      <button class="btn btn-primary" id="v-enviar" ${v.firma?'':'disabled'}>Enviar solicitud ${svg('i-arrowright',16)}</button>
     </div>
   </div>`;
 }
 
 function pasoVacListo(){
   const dias = contarDias(store.vac.desde, store.vac.hasta);
+  const fi = store.vac.firma;
   return `<div class="card done">
     <span class="circle">${svg('i-check',32)}</span>
     <div>
@@ -1236,6 +1297,8 @@ function pasoVacListo(){
       <div><span class="xs">N.º de trámite</span><span style="font-weight:600">TR-2052</span></div>
       <div><span class="xs">Estado</span><span class="strong">Pendiente de aprobación</span></div>
       <div><span class="xs">Días solicitados</span><span class="strong">${dias}</span></div>
+      ${fi ? `<div><span class="xs">Firma</span><span class="codigo">${fi.codigo}</span></div>
+      <div><span class="xs">Firmada el</span><span class="strong">${fi.fecha} ${fi.hora} h</span></div>` : ''}
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center">
       <a class="btn btn-primary" href="#/solicitudes">Ir a Mis solicitudes</a>
@@ -1790,7 +1853,7 @@ function vNovedadesRRHH(){
           <label class="lbl" for="p-dest">Destinatarios</label>
           <select class="select" id="p-dest">
             <option ${n.dest==='Todos los agentes'?'selected':''}>Todos los agentes</option>
-            ${[...new Set(AGENTES.map(a => a.area))].map(ar => `<option ${n.dest===ar?'selected':''}>${ar}</option>`).join('')}
+            ${AREAS.map(ar => `<option ${n.dest===ar?'selected':''}>${ar}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -1997,10 +2060,47 @@ function modalHTML(){
               : 'Ej.: coincide con la licencia de otro agente del área.'}">${esc(m.motivo||'')}</textarea>
             <p class="xs">El agente va a ver este motivo en su portal.</p>
           </div>
+          <div>
+            <p class="lbl" style="margin-bottom:.5rem">Firma electrónica</p>
+            ${metaFirmante().replace('style="margin-top:1rem"','style="margin-top:0"')}
+            <p class="firma-decl">Presto conformidad para firmar electrónicamente este rechazo y su motivo.</p>
+          </div>
         </div>
         <div class="modal-foot">
           <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
-          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>Rechazar</button>
+          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>${svg('i-shield',16)} Acepto firmar el rechazo</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* Toda decisión que cambia el estado de un trámite o un documento se firma. */
+  if (m.kind === 'firmar'){
+    return `<div class="modal-back" data-open="true" id="modal-back">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-tit">
+        <div class="modal-head">
+          <div>
+            <h2 class="h2" id="m-tit">${m.titulo}</h2>
+            <p class="sub" style="margin-top:.25rem">${m.sub}</p>
+          </div>
+          <button class="icon-btn" data-cerrar-modal aria-label="Cerrar" style="height:2rem;width:2rem">${svg('i-x',16)}</button>
+        </div>
+        <div class="modal-body">
+          ${m.resumen && m.resumen.length ? `<div>
+            <p class="lbl" style="margin-bottom:.5rem">Lo que vas a firmar</p>
+            <div class="meta" style="margin-top:0">
+              ${m.resumen.map(([k,v]) => `<div><p class="xs">${k}</p><p class="strong">${v}</p></div>`).join('')}
+            </div>
+          </div>` : ''}
+          <div>
+            <p class="lbl" style="margin-bottom:.5rem">Firma electrónica</p>
+            ${metaFirmante().replace('style="margin-top:1rem"','style="margin-top:0"')}
+            <p class="firma-decl">${m.declaracion}</p>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
+          <button class="btn btn-primary" id="m-confirmar">${svg('i-shield',16)} ${m.etiqueta}</button>
         </div>
       </div>
     </div>`;
@@ -2163,10 +2263,15 @@ function modalHTML(){
             <label class="lbl" for="m-motivo">Motivo del ajuste</label>
             <textarea class="textarea" id="m-motivo" rows="2" placeholder="Ej.: reconocimiento de días del período anterior.">${esc(m.motivo||'')}</textarea>
           </div>
+          <div>
+            <p class="lbl" style="margin-bottom:.5rem">Firma electrónica</p>
+            ${metaFirmante().replace('style="margin-top:1rem"','style="margin-top:0"')}
+            <p class="firma-decl">Presto conformidad para firmar electrónicamente este ajuste de saldo.</p>
+          </div>
         </div>
         <div class="modal-foot">
           <button class="btn btn-outline" data-cerrar-modal>Cancelar</button>
-          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>Guardar ajuste</button>
+          <button class="btn btn-primary" id="m-confirmar" ${(m.motivo||'').trim()?'':'disabled'}>${svg('i-shield',16)} Acepto firmar el ajuste</button>
         </div>
       </div>
     </div>`;
@@ -2883,11 +2988,66 @@ function bindModal(){
 
   const ok = $('#m-confirmar');
   if (ok) ok.addEventListener('click', () => {
+    if (m.kind === 'firmar'){
+      const fi = sellarFirma();
+
+      if (m.accion === 'aprobar'){
+        const x = SOLICITUDES.filter(y => y.numero === m.id)[0];
+        if (x){
+          x.estado = 'Aprobada';
+          x.firmaAprobacion = fi;
+          if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Solicitud aprobada',
+            detail:'Tu solicitud de ' + x.tipo + ' #' + x.numero + ' fue aprobada y firmada por tu Director. Pasa a RRHH para su registro.',
+            href:'#/solicitudes' });
+        }
+        cerrarModal();
+        toast('Aprobación firmada · ' + fi.codigo);
+        return;
+      }
+
+      if (m.accion === 'registrar'){
+        const x = SOLICITUDES.filter(y => y.numero === m.id)[0];
+        if (x){
+          x.estado = 'Registrada';
+          x.firmaRegistro = fi;
+          /* Al registrarse, la licencia descuenta del saldo del agente. */
+          const a = agente(x.agente);
+          if (a && x.dias){
+            const sd = x.tipo === 'Imprevisto' ? a.saldos.imp : a.saldos.lao;
+            sd.disp = Math.max(0, sd.disp - x.dias);
+          }
+          if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Licencia registrada',
+            detail:'RRHH registró tu ' + x.tipo + ' #' + x.numero + '. Ya está descontada de tu saldo.',
+            href:'#/solicitudes' });
+        }
+        cerrarModal();
+        toast('Registro firmado · ' + fi.codigo);
+        return;
+      }
+
+      if (m.accion === 'validar'){
+        const dd = docsTodos().filter(x => x.id === m.id)[0];
+        if (dd){
+          dd.estado = 'Validado';
+          dd.nota = null;
+          dd.firmaValidacion = fi;
+          if (dd.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Documentación validada',
+            detail:'RRHH validó ' + dd.nombre + '. Tu ausencia quedó justificada.', href:'#/documentos' });
+        }
+        cerrarModal();
+        toast('Validación firmada · ' + fi.codigo);
+        return;
+      }
+      cerrarModal();
+      return;
+    }
+
     if (m.kind === 'rechazar-doc'){
       const dd = docsTodos().filter(x => x.id === m.id)[0];
       if (dd){
         dd.estado = 'Rechazado';
         dd.nota = 'RRHH rechazó el archivo: ' + m.motivo.trim();
+        dd.firmaRechazo = sellarFirma();
         if (dd.agente === YO) avisar({ icon:'i-xcircle', tone:'danger', title:'Documentación rechazada',
           detail:'RRHH rechazó ' + dd.nombre + ': ' + m.motivo.trim(), href:'#/documentos' });
       }
@@ -2899,6 +3059,7 @@ function bindModal(){
       if (x){
         x.estado = 'Rechazada';
         x.motivo = m.motivo.trim();
+        x.firmaRechazo = sellarFirma();
         if (x.agente === YO) avisar({ icon:'i-xcircle', tone:'danger', title:'Solicitud rechazada',
           detail:'Tu solicitud de ' + x.tipo + ' #' + x.numero + ' fue rechazada por tu Director: ' + x.motivo,
           href:'#/solicitudes' });
@@ -2924,6 +3085,7 @@ function bindModal(){
       const nImp = Math.max(0, Math.min(a.saldos.imp.total, parseInt(m.imp,10) || 0));
       a.saldos.lao.disp = nLao;
       a.saldos.imp.disp = nImp;
+      a.firmaAjuste = sellarFirma();
       if (a.id === YO) avisar({ icon:'i-filetext', tone:'info', title:'Se actualizó tu saldo de licencia',
         detail:'RRHH ajustó tus saldos: ' + nLao + ' días de Licencia Anual Ordinaria y ' + nImp +
                ' de Imprevistos. Motivo: ' + m.motivo.trim(), href:'#/' });
@@ -2938,12 +3100,12 @@ function bindRRHH(){
   document.querySelectorAll('[data-validar]').forEach(b => b.addEventListener('click', () => {
     const dd = docsTodos().filter(x => x.id === b.getAttribute('data-validar'))[0];
     if (!dd) return;
-    dd.estado = 'Validado';
-    dd.nota = null;
-    if (dd.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Documentación validada',
-      detail:'RRHH validó ' + dd.nombre + '. Tu ausencia quedó justificada.', href:'#/documentos' });
-    render();
-    toast('Documentación validada.');
+    abrirModal({ kind:'firmar', accion:'validar', id:dd.id,
+      titulo:'Validar documentación',
+      sub: nombreAgente(dd.agente) + ' · ' + dd.nombre,
+      resumen: [['Tipo', dd.tipoDoc], ['Trámite', dd.tramite + ' · ' + dd.tipoTramite]],
+      declaracion:'Declaro haber revisado la documentación presentada y presto conformidad para firmar electrónicamente su validación.',
+      etiqueta:'Acepto firmar la validación' });
   }));
 
   document.querySelectorAll('[data-rechazar-doc]').forEach(b => b.addEventListener('click', () => {
@@ -2961,18 +3123,19 @@ function bindRRHH(){
   document.querySelectorAll('[data-registrar]').forEach(b => b.addEventListener('click', () => {
     const x = SOLICITUDES.filter(y => y.numero === b.getAttribute('data-registrar'))[0];
     if (!x) return;
-    x.estado = 'Registrada';
-    /* Al registrarse, la licencia descuenta del saldo del agente. */
     const a = agente(x.agente);
-    if (a && x.dias){
-      const sd = x.tipo === 'Imprevisto' ? a.saldos.imp : a.saldos.lao;
-      sd.disp = Math.max(0, sd.disp - x.dias);
-    }
-    if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Licencia registrada',
-      detail:'RRHH registró tu ' + x.tipo + ' #' + x.numero + '. Ya está descontada de tu saldo.',
-      href:'#/solicitudes' });
-    render();
-    toast('Trámite ' + x.numero + ' registrado.');
+    const sd = x.tipo === 'Imprevisto' ? a.saldos.imp : a.saldos.lao;
+    abrirModal({ kind:'firmar', accion:'registrar', id:x.numero,
+      titulo:'Registrar licencia',
+      sub: nombreAgente(x.agente) + ' · ' + x.tipo + ' #' + x.numero,
+      resumen: [
+        ['Período', x.periodo || '—'],
+        ['Días', String(x.dias || 0)],
+        ['Saldo actual', sd.disp + '/' + sd.total],
+        ['Saldo al registrar', Math.max(0, sd.disp - (x.dias||0)) + '/' + sd.total],
+      ],
+      declaracion:'Declaro que corresponde registrar esta licencia y presto conformidad para firmar electrónicamente su registro, con el descuento de saldo que implica.',
+      etiqueta:'Acepto firmar el registro' });
   }));
 
   /* Agentes: ajuste de saldo */
@@ -3020,12 +3183,16 @@ function bindDirector(){
   document.querySelectorAll('[data-aprobar]').forEach(b => b.addEventListener('click', () => {
     const x = SOLICITUDES.filter(y => y.numero === b.getAttribute('data-aprobar'))[0];
     if (!x) return;
-    x.estado = 'Aprobada';
-    if (x.agente === YO) avisar({ icon:'i-check', tone:'success', title:'Solicitud aprobada',
-      detail:'Tu solicitud de ' + x.tipo + ' #' + x.numero + ' fue aprobada por tu Director. Pasa a RRHH para su registro.',
-      href:'#/solicitudes' });
-    render();
-    toast('Solicitud aprobada. Pasa a RRHH para registrarla.');
+    const sp = superpuestos(x);
+    abrirModal({ kind:'firmar', accion:'aprobar', id:x.numero,
+      titulo:'Aprobar solicitud',
+      sub: nombreAgente(x.agente) + ' · ' + x.tipo + ' #' + x.numero,
+      resumen: [
+        ['Período', x.periodo || '—'],
+        ['Días', String(x.dias || 0)],
+      ].concat(sp.length ? [['Atención', 'Se superpone con ' + sp.join(' y ')]] : []),
+      declaracion:'Declaro haber analizado la solicitud y presto conformidad para firmar electrónicamente su aprobación.',
+      etiqueta:'Acepto firmar la aprobación' });
   }));
 
   document.querySelectorAll('[data-rechazar-sol]').forEach(b => b.addEventListener('click', () => {
@@ -3133,27 +3300,23 @@ function bind(path){
   const cont = $('#v-cont');
   if (cont) cont.addEventListener('click', () => { v.paso = 'firma'; render(); });
 
-  const dz = $('#v-dz'), file = $('#v-file');
-  if (dz) dz.addEventListener('click', () => file.click());
-  if (file) file.addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0];
-    if (f){ v.firma = f.name; repaso(); }
+  const firmarOk = $('#v-firmar-ok');
+  if (firmarOk) firmarOk.addEventListener('click', () => {
+    v.firma = sellarFirma();
+    repaso();
+    toast('Solicitud firmada. Ya podés enviarla.');
   });
-  const quitar = $('#v-quitar');
-  if (quitar) quitar.addEventListener('click', () => { v.firma = null; repaso(); });
-  const decl = $('#v-decl');
-  if (decl) decl.addEventListener('change', e => {
-    v.decl = e.target.checked;
-    $('#v-firmar').disabled = !(v.firma && v.decl);
-  });
+  const desfirmar = $('#v-desfirmar');
+  if (desfirmar) desfirmar.addEventListener('click', () => { v.firma = null; repaso(); });
+
   const volver = $('#v-volver');
   if (volver) volver.addEventListener('click', () => { v.paso = 'datos'; render(); });
-  const firmar = $('#v-firmar');
-  if (firmar) firmar.addEventListener('click', () => { v.paso = 'listo'; render(); });
+  const enviar = $('#v-enviar');
+  if (enviar) enviar.addEventListener('click', () => { v.paso = 'listo'; render(); });
 
   // los formularios vuelven al paso 1 si se sale de la pantalla
   if (!/vacaciones/.test(path) && v.paso === 'listo') Object.assign(v,
-    { paso:'datos', desde:'', hasta:'', comentario:'', firma:null, decl:false });
+    { paso:'datos', desde:'', hasta:'', comentario:'', firma:null });
   if (!/justificar-ausencia/.test(path) && store.just.paso === 'listo') Object.assign(store.just,
     { paso:'ausencia', ausencia:'', tipoDoc:'', archivo:null, comentario:'' });
 
